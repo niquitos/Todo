@@ -26,8 +26,6 @@ export function SprintForm({ sprint, onSubmit, onSuccess, onCancel }: SprintForm
 
   return (
     <form onSubmit={handleSubmit} className="sprint-form">
-      <h3>{sprint ? 'Редактировать спринт' : 'Создать спринт'}</h3>
-
       <div className="form-group">
         <label htmlFor="name">Название *</label>
         <input
