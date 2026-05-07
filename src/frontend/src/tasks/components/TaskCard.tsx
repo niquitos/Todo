@@ -4,11 +4,12 @@ interface TaskCardProps {
   task: TaskItem;
   onEdit: (task: TaskItem) => void;
   onDelete: (task: TaskItem) => void;
+  onDragStart?: (e: React.DragEvent) => void;
 }
 
-export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
+export function TaskCard({ task, onEdit, onDelete, onDragStart }: TaskCardProps) {
   return (
-    <div className="task-card" draggable>
+    <div className="task-card" draggable onDragStart={onDragStart}>
       <div className="task-card-actions">
         <button
           className="task-card-btn"

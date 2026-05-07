@@ -100,7 +100,15 @@ export function SprintBoard({
         )}
 
         <div className="sprint-columns-container">
-          <SprintColumns sprintId={activeSprint?.id} />
+          <SprintColumns
+            sprintId={activeSprint?.id}
+            tasks={[]}
+            onAddClick={() => {}}
+            onEdit={() => {}}
+            onDelete={() => {}}
+            onDragStart={() => {}}
+            onDrop={() => {}}
+          />
         </div>
       </div>
     </div>
