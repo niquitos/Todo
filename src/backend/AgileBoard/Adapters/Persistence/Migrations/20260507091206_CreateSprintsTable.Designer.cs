@@ -9,10 +9,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace AgileBoard.Migrations
+namespace AgileBoard.Adapters.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260507091015_CreateSprintsTable")]
+    [Migration("20260507091206_CreateSprintsTable")]
     partial class CreateSprintsTable
     {
         /// <inheritdoc />
