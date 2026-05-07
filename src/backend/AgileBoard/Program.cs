@@ -1,11 +1,18 @@
+using System.Runtime.CompilerServices;
 using AgileBoard.Adapters.Persistence;
+using AgileBoard.Adapters.WebApi.Filters;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
+
+[assembly: InternalsVisibleTo("AgileBoard.Tests")]
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddControllers();
+builder.Services.AddExceptionHandler<ExceptionHandlingMiddleware>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -17,6 +24,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseExceptionHandler("/error");
+
+app.MapControllers();
 
 var summaries = new[]
 {
