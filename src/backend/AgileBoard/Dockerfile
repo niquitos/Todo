@@ -10,9 +10,9 @@ COPY . .
 RUN dotnet build "AgileBoard.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "AgileBoard.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "AgileBoard.csproj" -c Release -o /src/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=publish /src/publish .
 ENTRYPOINT ["dotnet", "AgileBoard.dll"]
