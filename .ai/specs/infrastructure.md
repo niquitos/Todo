@@ -199,236 +199,211 @@ src/
 
 ### T1: Структура папок проекта
 
-**Files:** Вся корневая директория
+**Files:** `src/backend/`, `src/frontend/`, `docker-compose.yml`
 
 **Do:**
-- Создать папки `src/frontend/`, `src/backend/`, `docker/`
-- Создать структуру backend: `AgileBoard/{Adapters/{Infrastructure,Persistence,WebApi},Application/{UseCases,Common},Domain}`
-- Создать структуру тестов: `AgileBoard.Tests/{Unit/{Adapters,UseCases,Domain},Integration,Utils}`
-- Создать базовые `.gitkeep` файлы в пустых папках
+- Создать структуру папок для backend (.NET 8)
+- Создать структуру папок для frontend (React/TypeScript)
+- Создать базовые Docker конфигурации
+- Инициализировать .NET проект и npm проект
 
 **Acceptance Criteria:**
 
-**AC-1:** Все папки существуют и отображаются в дереве проекта
+**AC-1:** Все директории существуют согласно схеме в разделе "Проектирование"
 
 **Test Cases:**
 
-#### Test-1: Validation
+#### Test-1: Структура папок backend
 **Type:** Validation
 **Links:** AC-1
 
 **Preconditions:**
-- Чистая директория проекта
+- PowerShell/bash терминал открыт в корне проекта
 
 **Action:**
 ```
-tree src /F
+ls src/backend/AgileBoard/
 ```
 
 **Expected:**
-- Присутствуют все папки из структуры в разделе "Проектирование"
+- Папки: Adapters/, Application/, Domain/
 
 **Verify command:**
 ```
-test-path "src/backend/AgileBoard/Domain"
-test-path "src/backend/AgileBoard/Application/Common"
-test-path "src/backend/AgileBoard/Adapters/WebApi"
-test-path "src/backend/AgileBoard.Tests/Unit"
-test-path "src/backend/AgileBoard.Tests/Integration"
-test-path "src/frontend"
+Test-Path src/backend/AgileBoard/Adapters && Test-Path src/backend/AgileBoard/Application && Test-Path src/backend/AgileBoard/Domain
 ```
 
-**Dependencies:**
-- **Blocks:** T2, T3, T4, T5
-
-**Size:** S (~15 мин)
-
----
-
-### T2: Domain слой — агрегаты и value objects
-
-**Files:** 
-- `src/backend/AgileBoard/Domain/`
-- `src/backend/AgileBoard.Tests/Unit/Domain/`
-
-**Do:**
-- Создать базовые классы: `AggregateRoot<TId>`, `Entity<TId>`, `ValueObject<T>`
-- Создать пример агрегата (например, `Task` или `Board`)
-- Реализовать Value Object для примера (например, `TaskTitle`, `TaskStatus`)
-- Создать пустые unit-тесты для доменных объектов
-
-**Acceptance Criteria:**
-
-**AC-1:** Domain слой компилируется без ошибок
-**AC-2:** Unit-тесты запускаются через `dotnet test`
-
-**Test Cases:**
-
-#### Test-1: ValueObject equality
-**Type:** Unit
-**Links:** AC-1
-
-**Preconditions:**
-- Domain слой создан
-
-**Action:**
-```csharp
-var title1 = new TaskTitle("Test");
-var title2 = new TaskTitle("Test");
-var result = title1.Equals(title2);
-```
-
-**Expected:**
-```
-result == true
-```
-
-**Verify command:**
-```
-dotnet test --filter "ValueObject" --no-build
-```
-
-**Dependencies:**
-- **Blocked by:** T1
-- **Blocks:** T3
-
-**Size:** M (~1-2 часа)
-
----
-
-### T3: Application слой — CQRS основы
-
-**Files:**
-- `src/backend/AgileBoard/Application/Common/`
-- `src/backend/AgileBoard/Application/UseCases/`
-
-**Do:**
-- Создать интерфейсы: `IRequest`, `IRequest<TResponse>`, `IRequestHandler<TRequest>`, `IRequestHandler<TRequest, TResponse>`
-- Создать интерфейс валидатора: `IValidator<TRequest>`
-- Создать пример UseCase (Query + Handler)
-- Создать пример UseCase (Command + Handler)
-
-**Acceptance Criteria:**
-
-**AC-1:** Интерфейсы определены и готовы к использованию
-**AC-2:** Примеры UseCase компилируются
-
-**Test Cases:**
-
-#### Test-1: Handler registration
-**Type:** Unit
-**Links:** AC-1
-
-**Preconditions:**
-- Application слой создан
-
-**Action:**
-```
-dotnet build src/backend/AgileBoard
-```
-
-**Expected:**
-- Build успешен (exit code 0)
-
-**Verify command:**
-```
-dotnet build src/backend/AgileBoard --no-restore
-assert_exit_code 0
-```
-
-**Dependencies:**
-- **Blocked by:** T2
-- **Blocks:** T4
-
-**Size:** M (~1-2 часа)
-
----
-
-### T4: Persistence слой — EF Core repositories
-
-**Files:**
-- `src/backend/AgileBoard/Adapters/Persistence/`
-- `src/backend/AgileBoard.Tests/Integration/`
-
-**Do:**
-- Создать `AppDbContext : DbContext`
-- Создать интерфейсы: `IReadRepository<T>`, `IWriteRepository<T>`
-- Реализовать `Repository<T> : IReadRepository<T>, IWriteRepository<T>`
-- Настроить `DbSet<T>` для примера агрегата
-- Создать первую миграцию
-- Создать интеграционные тесты для репозитория
-
-**Acceptance Criteria:**
-
-**AC-1:** Репозитории работают с EF Core
-**AC-2:** Миграция создаёт таблицу в БД
-**AC-3:** Интеграционные тесты проходят
-
-**Test Cases:**
-
-#### Test-1: Repository write and read
-**Type:** Integration
-**Links:** AC-1, AC-2
-
-**Preconditions:**
-- PostgreSQL запущен
-- Миграции применены
-
-**Action:**
-```csharp
-var entity = new Aggregate { Name = "Test" };
-await writeRepository.AddAsync(entity);
-await unitOfWork.CommitAsync();
-var found = await readRepository.GetByIdAsync(entity.Id);
-```
-
-**Expected:**
-```
-found != null
-found.Name == "Test"
-```
-
-**Verify command:**
-```
-dotnet test --filter "Integration" --no-build
-```
-
-**Dependencies:**
-- **Blocked by:** T3
-- **Blocks:** T5
-
-**Size:** L (~2-4 часа)
-
----
-
-### T5: WebApi слой — контроллеры
-
-**Files:**
-- `src/backend/AgileBoard/Adapters/WebApi/`
-- `src/backend/AgileBoard.Tests/Unit/Adapters/WebApi/`
-
-**Do:**
-- Создать базовый `BaseController` с common логикой
-- Создать пример контроллера для агрегата
-- Настроить маппинг (Request → Command/Query, Response)
-- Настроить CORS для frontend (порт 3000)
-- Добавить health check endpoint: `GET /health`
-- Настроить DI контейнер (MediatR, EF Core, Repositories)
-
-**Acceptance Criteria:**
-
-**AC-1:** API запускается на порту 5000
-**AC-2:** Health check возвращает 200 OK
-**AC-3:** CORS настроен для localhost:3000
-
-**Test Cases:**
-
-#### Test-1: Health check endpoint
+#### Test-2: Структура папок frontend
 **Type:** Validation
+**Links:** AC-1
+
+**Preconditions:**
+- PowerShell/bash терминал открыт в корне проекта
+
+**Action:**
+```
+ls src/frontend/
+```
+
+**Expected:**
+- Существует папка src/frontend/
+
+**Verify command:**
+```
+Test-Path src/frontend/
+```
+
+#### Test-3: .NET проект инициализирован
+**Type:** Validation
+**Links:** AC-1
+
+**Preconditions:**
+- .NET 8 SDK установлен
+
+**Action:**
+```
+dotnet --version
+```
+
+**Expected:**
+- Версия .NET 8.x.x
+
+**Verify command:**
+```
+dotnet --version
+```
+
+**Dependencies:**
+- **Blocks:** T2, T3
+- **Blocked by:** —
+
+**Size:** S (~30 мин)
+
+---
+
+### T2: Persistence — DbContext + DI регистрация
+
+**Files:** `src/backend/AgileBoard/Adapters/Persistence/AppDbContext.cs`, `src/backend/AgileBoard/Adapters/Persistence/DependencyInjection.cs`
+
+**Do:**
+- Создать пустой AppDbContext (без миграций)
+- Создать метод расширения AddPersistence() для DI
+- Добавить connectionString в appsettings.json
+
+**Acceptance Criteria:**
+
+**AC-1:** AppDbContext существует и наследует DbContext
+**AC-2:** DI регистрация работает через AddPersistence()
+
+**Test Cases:**
+
+#### Test-1: AppDbContext создаётся
+**Type:** Unit
+**Links:** AC-1
+
+**Preconditions:**
+- EF Core пакет установлен
+
+**Action:**
+```
+var options = new DbContextOptionsBuilder<AppDbContext>()
+    .UseInMemoryDatabase("Test")
+    .Options;
+var context = new AppDbContext(options);
+```
+
+**Expected:**
+```
+context != null
+context.Database != null
+```
+
+**Verify command:**
+```
+run_tests --filter "AppDbContext creates"
+```
+
+#### Test-2: DI регистрация добавляет сервисы
+**Type:** Unit
 **Links:** AC-2
 
 **Preconditions:**
-- Backend запущен на порту 5000
+- IServiceCollection настроен
+
+**Action:**
+```
+var services = new ServiceCollection();
+services.AddPersistence("Host=localhost;Database=test;Username=postgres;Password=pass");
+var provider = services.BuildServiceProvider();
+var context = provider.GetService<AppDbContext>();
+```
+
+**Expected:**
+```
+context != null
+```
+
+**Verify command:**
+```
+run_tests --filter "DI registration"
+```
+
+**Dependencies:**
+- **Blocks:** T3
+- **Blocked by:** T1
+
+**Size:** S (~1 час)
+
+---
+
+### T7: Docker — оркестрация сервисов
+
+**Files:** `docker-compose.yml`, `docker-compose.override.yml`, `.dockerignore`, `Dockerfile`
+
+**Do:**
+- Создать docker-compose.yml для 3 сервисов
+- Настроить Dockerfile для backend и frontend
+- Настроить volume для PostgreSQL
+- Настроить network между сервисами
+
+**Acceptance Criteria:**
+
+**AC-1:** `docker-compose up` запускает все 3 сервиса
+**AC-2:** Frontend доступен на localhost:3000
+**AC-3:** Backend API доступен на localhost:5000
+**AC-4:** База данных запускается и принимает подключения
+
+**Test Cases:**
+
+#### Test-1: Все сервисы запускаются
+**Type:** Validation
+**Links:** AC-1
+
+**Preconditions:**
+- Docker Desktop запущен
+- docker-compose.yml существует
+
+**Action:**
+```
+docker-compose up -d
+```
+
+**Expected:**
+- 3 контейнера в статусе "Up"
+
+**Verify command:**
+```
+docker-compose ps
+assert_count 3
+assert_status "Up"
+```
+
+#### Test-2: Backend отвечает на health check
+**Type:** Validation
+**Links:** AC-3
+
+**Preconditions:**
+- docker-compose up выполнен
 
 **Action:**
 ```
@@ -437,170 +412,62 @@ HTTP GET http://localhost:5000/health
 
 **Expected:**
 - Status: 200 OK
-- Body: `{"status":"healthy"}`
 
 **Verify command:**
 ```
 http_get http://localhost:5000/health
 assert_status 200
-assert_field status == "healthy"
 ```
 
-#### Test-2: CORS headers
+#### Test-3: PostgreSQL принимает подключения
 **Type:** Validation
-**Links:** AC-3
+**Links:** AC-4
 
 **Preconditions:**
+- docker-compose up выполнен
+
+**Action:**
+```
+docker-compose exec db psql -U postgres -c "SELECT 1"
+```
+
+**Expected:**
+- Возвращает "?column? | 1"
+
+**Verify command:**
+```
+docker-compose exec db psql -U postgres -c "SELECT 1"
+assert_output_contains "1"
+```
+
+#### Test-4: Backend → Database подключение
+**Type:** Integration
+**Links:** AC-4
+
+**Preconditions:**
+- docker-compose up выполнен
 - Backend запущен
 
 **Action:**
 ```
-HTTP OPTIONS http://localhost:5000/api/example
-Origin: http://localhost:3000
+HTTP GET http://localhost:5000/health
 ```
 
 **Expected:**
 - Status: 200 OK
-- Header `Access-Control-Allow-Origin: http://localhost:3000`
+- Backend подтверждает подключение к БД
 
 **Verify command:**
 ```
-http_options http://localhost:5000/api/example -H "Origin: http://localhost:3000"
-assert_header "Access-Control-Allow-Origin" == "http://localhost:3000"
-```
-
-**Dependencies:**
-- **Blocked by:** T4
-- **Blocks:** T6, T7
-
-**Size:** L (~3-4 часа)
-
----
-
-### T6: Frontend — React приложение
-
-**Files:**
-- `src/frontend/`
-
-**Do:**
-- Инициализировать React + TypeScript проект через Vite
-- Создать базовую структуру папок по фичам
-- Настроить proxy на backend (localhost:5000)
-- Создать приветственную страницу с проверкой connection к API
-- Создать пример компонента с запросом к `/health`
-- Настроить ESLint + Prettier
-
-**Acceptance Criteria:**
-
-**AC-1:** Frontend запускается на порту 3000
-**AC-2:** Vite HMR работает (изменения видны без перезагрузки)
-**AC-3:** Запрос к backend успешен
-
-**Test Cases:**
-
-#### Test-1: Frontend serves page
-**Type:** Validation
-**Links:** AC-1
-
-**Preconditions:**
-- Frontend запущен
-
-**Action:**
-```
-HTTP GET http://localhost:3000
-```
-
-**Expected:**
-- Status: 200 OK
-- Body содержит HTML с React root
-
-**Verify command:**
-```
-http_get http://localhost:3000
+http_get http://localhost:5000/health
 assert_status 200
-assert_body_contains "root"
 ```
 
 **Dependencies:**
-- **Blocked by:** T1
-- **Blocks:** T7
+- **Blocks:** —
+- **Blocked by:** T1, T2
 
-**Size:** M (~2-3 часа)
+**Size:** M (~2 часа)
 
 ---
 
-### T7: Docker конфигурация
-
-**Files:**
-- `docker-compose.yml`
-- `docker-compose.override.yml`
-- `docker/backend/Dockerfile`
-- `docker/frontend/Dockerfile`
-- `.dockerignore` (backend + frontend)
-
-**Do:**
-- Создать Dockerfile для backend (multi-stage: build → run)
-- Создать Dockerfile для frontend (multi-stage: build → serve)
-- Создать docker-compose.yml с 3 сервисами (db, backend, frontend)
-- Создать docker-compose.override.yml для dev (volumes, watch)
-- Настроить .dockerignore для исключения bin, obj, node_modules
-- Настроить health checks для всех сервисов
-
-**Acceptance Criteria:**
-
-**AC-1:** `docker-compose up` поднимает все сервисы
-**AC-2:** Все health checks проходят
-**AC-3:** Сервисы видят друг друга
-
-**Test Cases:**
-
-#### Test-1: Все сервисы запущены
-**Type:** Validation
-**Links:** AC-1
-
-**Preconditions:**
-- Docker установлен
-
-**Action:**
-```
-docker-compose up -d
-docker-compose ps
-```
-
-**Expected:**
-- 3 сервиса в статусе "Up"
-- Health: healthy
-
-**Verify command:**
-```
-docker-compose ps
-assert_count_services == 3
-assert_all_healthy
-```
-
-#### Test-2: Backend доступен из контейнера
-**Type:** Validation
-**Links:** AC-3
-
-**Preconditions:**
-- Docker compose запущен
-
-**Action:**
-```
-docker-compose exec backend wget -q -O - http://localhost:5000/health
-```
-
-**Expected:**
-- Status: 200 OK
-- Body: `{"status":"healthy"}`
-
-**Verify command:**
-```
-docker-compose exec backend wget -q -O - http://localhost:5000/health
-assert_body_contains "healthy"
-```
-
-**Dependencies:**
-- **Blocked by:** T5
-
-**Size:** L (~3-4 часа)
