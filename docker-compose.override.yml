@@ -1,0 +1,8 @@
+services:
+  backend:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+
+  frontend:
+    environment:
+      - VITE_API_URL=http://backend:8080

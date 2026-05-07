@@ -1,0 +1,6 @@
+@AgileBoard_HostAddress = http://localhost:5007
+
+GET {{AgileBoard_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
