@@ -1,6 +1,6 @@
 import { Sprint, CreateSprintDto, UpdateSprintDto } from '../types/sprint';
 
-const API_URL = 'http://localhost:5000/api/sprints';
+const API_URL = '/api/sprints';
 
 export async function getSprints(): Promise<Sprint[]> {
   const response = await fetch(API_URL);
