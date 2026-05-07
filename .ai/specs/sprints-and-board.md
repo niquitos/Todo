@@ -1,5 +1,7 @@
 # Спринты и доска
 
+**Статус:** ✅ Реализовано
+
 ## Why
 Пользователю необходимо управление спринтами и визуализация задач через доску. Это базовая функция Agile/Scrum, которая позволяет планировать работу и отслеживать прогресс в рамках итераций.
 
@@ -8,14 +10,21 @@
 
 ## Context
 
+**Статус реализации:** Все задачи T1-T7 выполнены.
+
 **Relevant files:**
 - `CLAUDE.md` — общая архитектура и паттерны проекта
 - `.ai/specs/infrastructure.md` — базовая структура и паттерны (CQRS, Repository, DDD Lite)
-- `src/backend/AgileBoard/Adapters/Persistence/AppDbContext.cs` — DbContext для добавления сущностей
-- `src/backend/AgileBoard/Domain/` — место для доменных моделей (Sprint, Task)
-- `src/backend/AgileBoard/Application/UseCases/` — место для CQRS обработчиков
-- `src/backend/AgileBoard/Adapters/WebApi/` — место для контроллеров
-- `src/frontend/src/` — React компоненты
+- `src/backend/AgileBoard/Domain/Sprint.cs` — Aggregate Root спринта
+- `src/backend/AgileBoard/Domain/SprintId.cs` — Value Object для ID спринта
+- `src/backend/AgileBoard/Adapters/Persistence/AppDbContext.cs` — DbContext с DbSet<Sprint>
+- `src/backend/AgileBoard/Adapters/Persistence/Repositories/SprintRepository.cs` — репозиторий для спринтов
+- `src/backend/AgileBoard/Adapters/Persistence/Configurations/SprintConfiguration.cs` — конфигурация EF Core
+- `src/backend/AgileBoard/Adapters/Persistence/Migrations/` — миграция CreateSprintsTable
+- `src/backend/AgileBoard/Application/UseCases/Sprints/` — CQRS команды и запросы
+- `src/backend/AgileBoard/Adapters/WebApi/Controllers/SprintController.cs` — CRUD endpoints
+- `src/backend/AgileBoard/Adapters/WebApi/Filters/ExceptionHandlingMiddleware.cs` — обработка SprintOverlapException
+- `src/frontend/src/sprints/` — React компоненты (pages, components, hooks, types, api)
 
 **Patterns to follow:**
 - **CQRS:** IRequest/IRequest<TResult> для команд и запросов (infrastructure.md, строки 140-143)
@@ -23,6 +32,10 @@
 - **DDD Lite:** Aggregate Roots с инкапсулированной логикой (infrastructure.md, строки 150-153)
 - **TDD:** Red → Green → Refactor для backend (infrastructure.md, строки 155-159)
 - **Структура папок frontend:** `src/frontend/<feature>/components/, hooks/, types/` (CLAUDE.md)
+
+**Реализованные паттерны:**
+- **MediatR:** Используется для CQRS (IMediator в контроллерах)
+- **TDD:** Все backend тесты написаны и проходят (Unit + Integration)
 
 **Key decisions already made:**
 - Backend: ASP.NET Core 8 Controllers + EF Core + PostgreSQL
@@ -182,14 +195,17 @@
 
 ### API-контракты
 
+**Реализовано:**
+
 ```
 GET /api/sprints
 Response: [{ "id": "uuid", "name": "string", "startDate": "date", "endDate": "date", "description": "string" }]
 Status: 200 OK
 
 GET /api/sprints/{id}
-Response: { "id": "uuid", "name": "string", "startDate": "date", "endDate": "date", "description": "string", "columns": [{ "type": "new", "title": "Новые" }, { "type": "inProgress", "title": "В процессе" }, { "type": "done", "title": "Сделаны" }] }
+Response: { "id": "uuid", "name": "string", "startDate": "date", "endDate": "date", "description": "string" }
 Status: 200 OK
+Примечание: колонки возвращаются на frontend (статические данные)
 
 POST /api/sprints
 Request: { "name": "string", "startDate": "date", "endDate": "date", "description": "string?" }
@@ -199,12 +215,14 @@ Status: 201 Created
 PUT /api/sprints/{id}
 Request: { "name": "string", "startDate": "date", "endDate": "date", "description": "string?" }
 Response: 204 No Content
-Status: 204 No Content
 
 DELETE /api/sprints/{id}
 Response: 204 No Content
-Status: 204 No Content
 ```
+
+**Обработка ошибок:**
+- `SprintOverlapException` → 400 Bad Request (через ExceptionHandlingMiddleware)
+- `NotFoundException` → 404 Not Found
 
 ### Миграция (если требуется)
 
@@ -245,7 +263,16 @@ CREATE TABLE "Sprints" (
 
 ## Задачи
 
-### T1: Доменная модель Sprint Aggregate
+**Статус:** Все задачи (T1-T7) выполнены ✅
+
+### T1: Доменная модель Sprint Aggregate ✅
+
+**Status:** Реализовано
+
+**Files:** 
+- `src/backend/AgileBoard/Domain/Sprint.cs` — агрегат с методами Create, Update, OverlapsWith
+- `src/backend/AgileBoard/Domain/SprintId.cs` — value object wrapper над Guid
+- `src/backend/AgileBoard.Tests/Unit/Domain/SprintTests.cs` — 4 теста (AC-1.1 — AC-1.4)
 
 **Files:** 
 - `src/backend/AgileBoard/Domain/Sprint.cs`
@@ -374,13 +401,17 @@ git commit -m "Add Sprint aggregate root with OverlapsWith validation"
 
 ---
 
-### T2: Репозиторий и миграция БД для спринтов
+### T2: Репозиторий и миграция БД для спринтов ✅
+
+**Status:** Реализовано
 
 **Files:**
-- `src/backend/AgileBoard/Adapters/Persistence/Configurations/SprintConfiguration.cs`
-- `src/backend/AgileBoard/Adapters/Persistence/Repositories/SprintRepository.cs`
-- `src/backend/AgileBoard/Adapters/Persistence/AppDbContext.cs`
-- `src/backend/AgileBoard/Migrations/YYYYMMDD_CreateSprintsTable.cs`
+- `src/backend/AgileBoard/Adapters/Persistence/Configurations/SprintConfiguration.cs` — конфигурация EF Core
+- `src/backend/AgileBoard/Adapters/Persistence/Repositories/SprintRepository.cs` — реализация ISprintRepository
+- `src/backend/AgileBoard/Adapters/Persistence/Repositories/ISprintRepository.cs` — интерфейс репозитория
+- `src/backend/AgileBoard/Adapters/Persistence/AppDbContext.cs` — DbSet<Sprint>
+- `src/backend/AgileBoard/Adapters/Persistence/Migrations/20260507091206_CreateSprintsTable.cs` — миграция
+- `src/backend/AgileBoard.Tests/Integration/Persistence/SprintRepositoryTests.cs` — 4 интеграционных теста
 
 **Do:**
 - Добавить `DbSet<Sprint>` в `AppDbContext`
@@ -512,18 +543,22 @@ git commit -m "Add SprintRepository and database migration"
 
 ---
 
-### T3: CQRS команды и запросы для спринтов
+### T3: CQRS команды и запросы для спринтов ✅
+
+**Status:** Реализовано
 
 **Files:**
-- `src/backend/AgileBoard/Application/UseCases/Sprints/CreateSprintCommand.cs`
-- `src/backend/AgileBoard/Application/UseCases/Sprints/UpdateSprintCommand.cs`
-- `src/backend/AgileBoard/Application/UseCases/Sprints/DeleteSprintCommand.cs`
-- `src/backend/AgileBoard/Application/UseCases/Sprints/GetSprintsQuery.cs`
-- `src/backend/AgileBoard/Application/UseCases/Sprints/GetSprintByIdQuery.cs`
-- `src/backend/AgileBoard/Application/UseCases/Sprints/SprintDto.cs`
-- `src/backend/AgileBoard/Application/UseCases/Sprints/SprintValidator.cs`
-- `src/backend/AgileBoard.Tests/Unit/UseCases/Sprints/CreateSprintCommandTests.cs`
-- `src/backend/AgileBoard.Tests/Unit/UseCases/Sprints/UpdateSprintCommandTests.cs`
+- `src/backend/AgileBoard/Application/UseCases/Sprints/CreateSprintCommand.cs` — команда + обработчик
+- `src/backend/AgileBoard/Application/UseCases/Sprints/UpdateSprintCommand.cs` — команда + обработчик
+- `src/backend/AgileBoard/Application/UseCases/Sprints/DeleteSprintCommand.cs` — команда + обработчик
+- `src/backend/AgileBoard/Application/UseCases/Sprints/GetSprintsQuery.cs` — запрос + обработчик
+- `src/backend/AgileBoard/Application/UseCases/Sprints/GetSprintByIdQuery.cs` — запрос + обработчик
+- `src/backend/AgileBoard/Application/UseCases/Sprints/SprintDto.cs` — DTO записи
+- `src/backend/AgileBoard/Application/UseCases/Sprints/CreateSprintDto.cs` — DTO создания
+- `src/backend/AgileBoard/Application/UseCases/Sprints/UpdateSprintDto.cs` — DTO обновления
+- `src/backend/AgileBoard/Application/UseCases/Sprints/SprintOverlapException.cs` — исключение пересечения
+- `src/backend/AgileBoard/Application/UseCases/Sprints/NotFoundException.cs` — исключение не найдено
+- `src/backend/AgileBoard.Tests/Unit/UseCases/Sprints/*.cs` — 8 unit тестов
 
 **Do:**
 - Создать DTO `SprintDto` и `CreateSprintDto`, `UpdateSprintDto`
@@ -747,12 +782,15 @@ git commit -m "Add CQRS commands and queries for Sprints"
 
 ---
 
-### T4: SprintController с CRUD endpoints
+### T4: SprintController с CRUD endpoints ✅
+
+**Status:** Реализовано
 
 **Files:**
-- `src/backend/AgileBoard/Adapters/WebApi/Controllers/SprintController.cs`
-- `src/backend/AgileBoard/Adapters/WebApi/Filters/SprintOverlapException.cs`
-- `src/backend/AgileBoard.Tests/Integration/SprintControllerTests.cs`
+- `src/backend/AgileBoard/Adapters/WebApi/Controllers/SprintController.cs` — контроллер с 5 endpoints
+- `src/backend/AgileBoard/Adapters/WebApi/Filters/SprintOverlapException.cs` — определение исключения
+- `src/backend/AgileBoard/Adapters/WebApi/Filters/ExceptionHandlingMiddleware.cs` — глобальная обработка ошибок
+- `src/backend/AgileBoard.Tests/Integration/SprintControllerTests.cs` — 8 интеграционных тестов (AC-4.1 — AC-4.8)
 
 **Do:**
 - Создать `SprintController : ControllerBase` с маршрутом `/api/sprints`
@@ -950,16 +988,21 @@ git commit -m "Add SprintController with CRUD endpoints"
 
 ---
 
-### T5: Frontend — SprintBoard страница с ComboBox и формой
+### T5: Frontend — SprintBoard страница с ComboBox и формой ✅
+
+**Status:** Реализовано
 
 **Files:**
-- `src/frontend/src/sprints/types/sprint.ts`
-- `src/frontend/src/sprints/hooks/useSprints.ts`
-- `src/frontend/src/sprints/hooks/useSprintForm.ts`
-- `src/frontend/src/sprints/components/SprintSelect.tsx`
-- `src/frontend/src/sprints/components/SprintForm.tsx`
-- `src/frontend/src/sprints/components/SprintBoard.tsx`
-- `src/frontend/src/sprints/pages/SprintBoardPage.tsx`
+- `src/frontend/src/sprints/types/sprint.ts` — TypeScript интерфейсы (Sprint, CreateSprintDto, UpdateSprintDto)
+- `src/frontend/src/sprints/hooks/useSprints.ts` — хук для загрузки и управления спринтами
+- `src/frontend/src/sprints/hooks/useSprintForm.ts` — хук для управления формой
+- `src/frontend/src/sprints/api/sprintsApi.ts` — API функции (getSprints, createSprint, updateSprint, deleteSprint)
+- `src/frontend/src/sprints/components/SprintSelect.tsx` — ComboBox выбора спринта
+- `src/frontend/src/sprints/components/SprintForm.tsx` — форма создания/редактирования
+- `src/frontend/src/sprints/components/SprintBoard.tsx` — контейнер доски
+- `src/frontend/src/sprints/components/SprintColumns.tsx` — три колонки доски
+- `src/frontend/src/sprints/components/SprintColumn.tsx` — отдельная колонка
+- `src/frontend/src/sprints/pages/SprintBoardPage.tsx` — страница с маршрутом `/sprints`
 
 **Do:**
 - Создать тип `Sprint` с полями: id, name, startDate, endDate, description, columns?
@@ -1011,12 +1054,14 @@ git commit -m "Add SprintBoard page with ComboBox and form"
 
 ---
 
-### T6: Frontend — Три колонки доски
+### T6: Frontend — Три колонки доски ✅
+
+**Status:** Реализовано
 
 **Files:**
-- `src/frontend/src/sprints/components/SprintColumns.tsx`
-- `src/frontend/src/sprints/components/SprintColumn.tsx`
-- `src/frontend/src/sprints/sprints-board.css`
+- `src/frontend/src/sprints/components/SprintColumns.tsx` — контейнер для 3 колонок
+- `src/frontend/src/sprints/components/SprintColumn.tsx` — отдельная колонка с заголовком
+- `src/frontend/src/sprints/sprints-board.css` — стили flexbox для вертикального заполнения
 
 **Do:**
 - Создать компонент `SprintColumns` — контейнер для 3 колонок
@@ -1059,12 +1104,15 @@ git commit -m "Add three-column SprintBoard layout"
 
 ---
 
-### T7: Интеграция frontend с backend API
+### T7: Интеграция frontend с backend API ✅
+
+**Status:** Реализовано
 
 **Files:**
-- `src/frontend/src/sprints/api/sprintsApi.ts`
-- `src/frontend/src/main.tsx` (маршрутизация)
-- `src/frontend/src/App.tsx`
+- `src/frontend/src/sprints/api/sprintsApi.ts` — функции для вызова API
+- `src/frontend/src/main.tsx` — маршрутизация на `/sprints`
+- `src/frontend/src/App.tsx` — подключение SprintBoardPage
+- `src/backend/AgileBoard/Program.cs` — CORS для localhost:3000, подключение MediatR, ExceptionHandlingMiddleware
 
 **Do:**
 - Создать `sprintsApi.ts` с функциями: getSprints, getSprintById, createSprint, updateSprint, deleteSprint
@@ -1121,12 +1169,45 @@ git commit -m "Integrate frontend with backend API and configure CORS"
 
 ## Порядок выполнения
 
+**Выполнено:**
 ```
 T1 (Domain) → T2 (Repository+Migration) → T3 (CQRS) → T4 (Controller)
                                               ↓
 T7 (Integration) ← T6 (Columns) ← T5 (Frontend Page+Form) ←────────┘
 ```
 
-**Критический путь:** T1 → T2 → T3 → T4 → T5 → T6 → T7
+**Критический путь:** T1 → T2 → T3 → T4 → T5 → T6 → T7 ✅
 
-**Общая оценка:** 8-14 часов (5-7 сессий по ~2 часа)
+**Фактически затрачено:** ~8 часов (все задачи выполнены)
+
+---
+
+## Итоговый статус
+
+| Задача | Статус | Файлы | Тесты |
+|--------|--------|-------|-------|
+| T1: Domain | ✅ | Sprint.cs, SprintId.cs | 4 unit теста |
+| T2: Repository | ✅ | SprintRepository.cs, миграция | 4 интеграционных теста |
+| T3: CQRS | ✅ | 8 команд/запросов | 8 unit тестов |
+| T4: Controller | ✅ | SprintController.cs | 8 интеграционных тестов |
+| T5: Frontend Page | ✅ | 6 компонентов + хуки | Ручная проверка |
+| T6: Columns | ✅ | 2 компонента + CSS | Ручная проверка |
+| T7: Integration | ✅ | API + CORS + роутинг | E2E ручная |
+
+**Всего тестов:** 24 (Unit + Integration)
+
+**Запуск тестов:**
+```bash
+dotnet test
+```
+
+**Запуск приложения:**
+```bash
+docker-compose up -d
+dotnet run --project src/backend/AgileBoard
+npm run dev --prefix src/frontend
+```
+
+**URL:**
+- Frontend: http://localhost:3000/sprints
+- Backend API: http://localhost:5000/api/sprints

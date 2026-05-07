@@ -29,8 +29,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Data Flow
 
 ```
-Frontend:3000 → Backend:5000 → Controllers → UseCases → Repositories → PostgreSQL:5432
+Frontend:3000 (nginx) → Backend:5000 → Controllers → UseCases → Repositories → PostgreSQL:5432
 ```
+
+### Frontend Architecture
+
+**Feature-based organization:**
+```
+src/frontend/src/<feature>/
+├── types/       # TypeScript интерфейсы
+├── api/         # API функции (fetch)
+├── hooks/       # React хуки
+├── components/  # UI компоненты
+└── pages/       # Страницы
+```
+
+**Nginx конфигурация:**
+- Раздаёт статику из `/app/dist`
+- Проксирует `/api/*` на backend:8080
+- SPA routing через `try_files`
 
 ### Key Patterns
 
@@ -41,53 +58,47 @@ Frontend:3000 → Backend:5000 → Controllers → UseCases → Repositories →
 
 ## Commands
 
-**Git:**
+**Запуск приложения:**
 ```
-git status
-git log --oneline
-git branch --show-current
-```
-
-**Build & Run (Docker):**
-```
-docker-compose up          # Запуск всех сервисов
-docker-compose up -d       # Фоновый режим
-docker-compose ps          # Статус контейнеров
+docker-compose up --build -d     # Сборка и запуск всех сервисов
+docker-compose down              # Остановка и удаление контейнеров
+docker-compose ps                # Статус контейнеров
+docker-compose logs -f backend   # Логи backend
 ```
 
-**.NET:**
-```
-dotnet build               # Сборка
-dotnet test                # Все тесты
-dotnet test --filter "Name~TestName"  # Один тест
-```
-
-**Node.js:**
-```
-npm install                # Установка зависимостей
-npm run dev                # Dev-сервер (Vite)
-```
+**Порты:**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000/api
+- PostgreSQL: localhost:5432
 
 ## Project Structure
 
 ```
 src/
 ├── frontend/              # React + TypeScript
-│   └── <feature>/
-│       ├── components/
-│       ├── hooks/
-│       └── types/
+│   ├── src/
+│   │   ├── <feature>/    # Feature folders (sprints)
+│   │   │   ├── types/    # TypeScript интерфейсы
+│   │   │   ├── api/      # API функции
+│   │   │   ├── hooks/    # React хуки
+│   │   │   ├── components/
+│   │   │   └── pages/
+│   │   └── main.tsx      # Entry point
+│   ├── Dockerfile        # Multi-stage: node → nginx
+│   └── nginx.conf        # SPA routing + API proxy
 └── backend/
-    ├── AgileBoard/        # Основной проект
+    ├── AgileBoard/       # Основной проект
     │   ├── Adapters/
     │   │   ├── Infrastructure/
-    │   │   ├── Persistence/
-    │   │   └── WebApi/
+    │   │   ├── Persistence/  # DbContext, Repositories, Migrations
+    │   │   └── WebApi/       # Controllers, Filters
     │   ├── Application/
-    │   │   ├── UseCases/
+    │   │   ├── UseCases/     # CQRS handlers
     │   │   └── Common/
-    │   └── Domain/
-    └── AgileBoard.Tests/  # NUnit тесты
+    │   ├── Domain/           # Aggregates, Value Objects
+    │   ├── Program.cs        # DI, CORS, Middleware
+    │   └── Dockerfile
+    └── AgileBoard.Tests/
         ├── Unit/
         └── Integration/
 ```
@@ -99,3 +110,9 @@ src/
 - **Requirements** — функциональные и нефункциональные требования
 - **Design** — архитектурные решения
 - **Tasks** — задачи с тестами и критериями приёмки
+
+## Database
+
+**Migrations:** EF Core миграции применяются автоматически при старте backend (`EnsureCreated()`).
+
+**Location:** `src/backend/AgileBoard/Adapters/Persistence/Migrations/`
