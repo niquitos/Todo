@@ -7,6 +7,7 @@ public class Sprint
     public DateTime StartDate { get; private set; }
     public DateTime EndDate { get; private set; }
     public string? Description { get; private set; }
+    public bool IsDefault { get; private set; }
 
     private Sprint()
     {
@@ -16,7 +17,7 @@ public class Sprint
         EndDate = DateTime.MinValue;
     }
 
-    public static Sprint Create(string name, DateTime startDate, DateTime endDate, string? description = null)
+    public static Sprint Create(string name, DateTime startDate, DateTime endDate, string? description = null, bool isDefault = false)
     {
         return new Sprint
         {
@@ -24,7 +25,8 @@ public class Sprint
             Name = name,
             StartDate = startDate,
             EndDate = endDate,
-            Description = description
+            Description = description,
+            IsDefault = isDefault
         };
     }
 

@@ -4,6 +4,7 @@ export interface Sprint {
   startDate: string;
   endDate: string;
   description?: string;
+  isDefault: boolean;
 }
 
 export interface CreateSprintDto {

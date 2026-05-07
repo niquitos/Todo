@@ -1,12 +1,16 @@
 using System.Runtime.CompilerServices;
 using AgileBoard.Adapters.Persistence;
 using AgileBoard.Adapters.WebApi.Filters;
+using AgileBoard.Domain;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 [assembly: InternalsVisibleTo("AgileBoard.Tests")]
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Allow Npgsql to treat Unspecified DateTime as UTC (required for JSON-deserialized dates)
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 // Add services to the container.
 builder.Services.AddPersistence(builder.Configuration);
@@ -27,11 +31,40 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Apply migrations on startup
+// Ensure database and seed default data on startup
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.EnsureCreated();
+
+    try
+    {
+        if (!dbContext.Sprints.Any(s => s.IsDefault))
+        {
+            var defaultSprint = Sprint.Create(
+                "Не запланировано",
+                DateTime.MinValue,
+                DateTime.MaxValue,
+                "Задачи без привязки к спринту",
+                isDefault: true);
+            dbContext.Sprints.Add(defaultSprint);
+            dbContext.SaveChanges();
+        }
+    }
+    catch
+    {
+        dbContext.Database.EnsureDeleted();
+        dbContext.Database.EnsureCreated();
+
+        var defaultSprint = Sprint.Create(
+            "Не запланировано",
+            DateTime.MinValue,
+            DateTime.MaxValue,
+            "Задачи без привязки к спринту",
+            isDefault: true);
+        dbContext.Sprints.Add(defaultSprint);
+        dbContext.SaveChanges();
+    }
 }
 
 // Configure the HTTP request pipeline.

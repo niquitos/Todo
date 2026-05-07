@@ -25,7 +25,7 @@ public class CreateTaskItemCommandTests
         _repositoryMock.Setup(r => r.GetBySprintIdAsync(sprintId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<TaskItem>());
 
-        var dto = new CreateTaskItemDto("Task 1", "Description", "New");
+        var dto = new CreateTaskItemDto { Name = "Task 1", Description = "Description", ColumnType = "New" };
         var command = new CreateTaskItemCommand(sprintId, dto);
 
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -46,7 +46,7 @@ public class CreateTaskItemCommandTests
         _repositoryMock.Setup(r => r.GetBySprintIdAsync(sprintId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingTasks);
 
-        var dto = new CreateTaskItemDto("Task 1", "Description", "New");
+        var dto = new CreateTaskItemDto { Name = "Task 1", Description = "Description", ColumnType = "New" };
         var command = new CreateTaskItemCommand(sprintId, dto);
 
         await _handler.Handle(command, CancellationToken.None);

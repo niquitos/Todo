@@ -28,9 +28,10 @@ public class TaskItemController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<TaskItemDto>> CreateTaskItem(Guid sprintId, [FromBody] CreateTaskItemDto dto, CancellationToken cancellationToken)
     {
-        var command = new CreateTaskItemCommand(new SprintId(sprintId), dto);
+        var effectiveSprintId = dto.SprintId ?? sprintId;
+        var command = new CreateTaskItemCommand(new SprintId(effectiveSprintId), dto);
         var id = await _mediator.Send(command, cancellationToken);
-        var result = new TaskItemDto(id, dto.Name, dto.Description, sprintId, dto.ColumnType, 0);
+        var result = new TaskItemDto(id, dto.Name, dto.Description, effectiveSprintId, dto.ColumnType, 0);
         return Created(string.Empty, result);
     }
 

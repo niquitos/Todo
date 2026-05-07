@@ -36,5 +36,10 @@ public class TaskItemConfiguration : IEntityTypeConfiguration<TaskItem>
             .IsRequired();
 
         builder.HasIndex(t => new { t.SprintId, t.ColumnType, t.Position });
+
+        builder.HasOne<Sprint>()
+            .WithMany()
+            .HasForeignKey(t => t.SprintId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

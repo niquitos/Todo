@@ -1,16 +1,28 @@
 import { useState, FormEvent } from 'react';
-import { TaskItem, CreateTaskItemDto, UpdateTaskItemDto } from '../types/taskItem';
+import { TaskItem, CreateTaskItemDto, UpdateTaskItemDto, ColumnType } from '../types/taskItem';
+import { Sprint } from '../../sprints/types/sprint';
 
 interface TaskFormProps {
   task?: TaskItem | null;
+  columnType?: ColumnType;
+  sprints: Sprint[];
+  defaultSprintId?: string;
   onSubmit: (dto: CreateTaskItemDto | UpdateTaskItemDto) => Promise<void>;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export function TaskForm({ task, onSubmit, onSuccess, onCancel }: TaskFormProps) {
+const COLUMN_TYPE_OPTIONS: { value: ColumnType; label: string }[] = [
+  { value: 'New', label: 'Новые' },
+  { value: 'InProgress', label: 'В процессе' },
+  { value: 'Done', label: 'Сделаны' },
+];
+
+export function TaskForm({ task, columnType, sprints, defaultSprintId, onSubmit, onSuccess, onCancel }: TaskFormProps) {
   const [name, setName] = useState(task?.name || '');
   const [description, setDescription] = useState(task?.description || '');
+  const [status, setStatus] = useState<ColumnType>(task?.columnType || columnType || 'New');
+  const [sprintId, setSprintId] = useState<string>(task?.sprintId || defaultSprintId || '');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -26,7 +38,12 @@ export function TaskForm({ task, onSubmit, onSuccess, onCancel }: TaskFormProps)
     setError(null);
 
     try {
-      await onSubmit({ name: name.trim(), description: description.trim() || undefined });
+      await onSubmit({
+        name: name.trim(),
+        description: description.trim() || undefined,
+        columnType: status,
+        sprintId: sprintId || undefined,
+      });
       onSuccess();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка сохранения');
@@ -48,6 +65,34 @@ export function TaskForm({ task, onSubmit, onSuccess, onCancel }: TaskFormProps)
           placeholder="Название задачи"
           disabled={submitting}
         />
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="task-sprint">Спринт</label>
+        <select
+          id="task-sprint"
+          value={sprintId}
+          onChange={(e) => setSprintId(e.target.value)}
+          disabled={submitting}
+        >
+          {sprints.map((s) => (
+            <option key={s.id} value={s.id}>{s.name}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="task-status">Статус</label>
+        <select
+          id="task-status"
+          value={status}
+          onChange={(e) => setStatus(e.target.value as ColumnType)}
+          disabled={submitting}
+        >
+          {COLUMN_TYPE_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
       </div>
 
       <div className="form-group">

@@ -13,11 +13,13 @@ export interface CreateTaskItemDto {
   name: string;
   description?: string;
   columnType: ColumnType;
+  sprintId?: string;
 }
 
 export interface UpdateTaskItemDto {
   name: string;
   description?: string;
+  sprintId?: string;
 }
 
 export interface MoveTaskItemDto {

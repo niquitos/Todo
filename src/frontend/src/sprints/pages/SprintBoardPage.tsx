@@ -39,6 +39,9 @@ export function SprintBoardPage() {
   const [editModalTask, setEditModalTask] = useState<TaskItem | null>(null);
   const [confirmDeleteTask, setConfirmDeleteTask] = useState<TaskItem | null>(null);
 
+  const defaultSprint = sprints.find(s => s.isDefault);
+  const defaultSprintId = defaultSprint?.id;
+
   // Drag-and-drop
   const handleDragStart = (e: React.DragEvent, taskId: string) => {
     e.dataTransfer.setData('text/plain', taskId);
@@ -177,6 +180,9 @@ export function SprintBoardPage() {
               <button className="modal-close" onClick={() => setCreateModalColumn(null)}>&times;</button>
             </div>
             <TaskForm
+              columnType={createModalColumn}
+              sprints={sprints}
+              defaultSprintId={activeSprintId || defaultSprintId}
               onSubmit={handleCreateTask}
               onSuccess={handleTaskCreateSuccess}
               onCancel={() => setCreateModalColumn(null)}
@@ -195,6 +201,7 @@ export function SprintBoardPage() {
             </div>
             <TaskForm
               task={editModalTask}
+              sprints={sprints}
               onSubmit={handleUpdateTask}
               onSuccess={handleTaskUpdateSuccess}
               onCancel={() => setEditModalTask(null)}

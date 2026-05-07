@@ -40,4 +40,9 @@ public class TaskItem
         ColumnType = columnType;
         Position = position;
     }
+
+    public void ReassignTo(SprintId sprintId)
+    {
+        SprintId = sprintId;
+    }
 }

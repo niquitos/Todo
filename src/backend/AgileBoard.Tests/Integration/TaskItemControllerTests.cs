@@ -71,7 +71,7 @@ public class TaskItemControllerTests
         var sprint = Sprint.Create("Sprint 1", DateTime.UtcNow, DateTime.UtcNow.AddDays(14));
         SeedData(sprint);
 
-        var dto = new CreateTaskItemDto("Task 1", "Desc", "New");
+        var dto = new CreateTaskItemDto { Name = "Task 1", Description = "Desc", ColumnType = "New" };
 
         var response = await _client.PostAsJsonAsync($"/api/sprints/{sprint.Id.Value}/tasks", dto);
 
@@ -89,7 +89,7 @@ public class TaskItemControllerTests
         var sprint = Sprint.Create("Sprint 1", DateTime.UtcNow, DateTime.UtcNow.AddDays(14));
         SeedData(sprint);
 
-        var createDto = new CreateTaskItemDto("Task 1", "Desc", "New");
+        var createDto = new CreateTaskItemDto { Name = "Task 1", Description = "Desc", ColumnType = "New" };
         var createResponse = await _client.PostAsJsonAsync($"/api/sprints/{sprint.Id.Value}/tasks", createDto);
         var created = (await createResponse.Content.ReadFromJsonAsync<TaskItemDto>())!;
 
@@ -106,7 +106,7 @@ public class TaskItemControllerTests
         var sprint = Sprint.Create("Sprint 1", DateTime.UtcNow, DateTime.UtcNow.AddDays(14));
         SeedData(sprint);
 
-        var createDto = new CreateTaskItemDto("Task 1", "Desc", "New");
+        var createDto = new CreateTaskItemDto { Name = "Task 1", Description = "Desc", ColumnType = "New" };
         var createResponse = await _client.PostAsJsonAsync($"/api/sprints/{sprint.Id.Value}/tasks", createDto);
         var created = (await createResponse.Content.ReadFromJsonAsync<TaskItemDto>())!;
 

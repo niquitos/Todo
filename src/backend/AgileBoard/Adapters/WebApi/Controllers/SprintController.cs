@@ -37,7 +37,7 @@ public class SprintController : ControllerBase
     {
         var command = new CreateSprintCommand(dto);
         var id = await _mediator.Send(command, cancellationToken);
-        return CreatedAtAction(nameof(GetSprintById), new { id }, new SprintDto(id, dto.Name, dto.StartDate, dto.EndDate, dto.Description));
+        return CreatedAtAction(nameof(GetSprintById), new { id }, new SprintDto(id, dto.Name, dto.StartDate, dto.EndDate, dto.Description, false));
     }
 
     [HttpPut("{id:guid}")]

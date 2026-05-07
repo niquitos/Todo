@@ -37,6 +37,14 @@ public class ExceptionHandlingMiddleware : IExceptionHandler
             problemDetails.Detail = notFoundEx.Message;
             httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
         }
+        else if (exception is InvalidOperationException invalidOpEx)
+        {
+            problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
+            problemDetails.Title = "Bad Request";
+            problemDetails.Status = StatusCodes.Status400BadRequest;
+            problemDetails.Detail = invalidOpEx.Message;
+            httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+        }
         else
         {
             problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1";
