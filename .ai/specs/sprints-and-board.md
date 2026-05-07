@@ -98,6 +98,7 @@
 - Шаблоны спринтов
 - Экспорт/импорт данных
 - E2E тесты
+- **Frontend тесты** — React компоненты не покрываются автотестами, только ручная проверка через `npm run dev`
 
 ## Критерии приёмки
 
@@ -365,6 +366,12 @@ dotnet test --filter "Sprint_Update_ChangesProperties"
 
 **Size:** S (~1-2 часа)
 
+**Commit:**
+```
+git add src/backend/AgileBoard/Domain/Sprint.cs src/backend/AgileBoard/Domain/SprintId.cs src/backend/AgileBoard.Tests/Unit/Domain/SprintTests.cs
+git commit -m "Add Sprint aggregate root with OverlapsWith validation"
+```
+
 ---
 
 ### T2: Репозиторий и миграция БД для спринтов
@@ -496,6 +503,12 @@ dotnet test --filter "SprintRepository_Delete_ThenGetById_ReturnsNull"
 - **Blocks:** T3
 
 **Size:** S (~1-2 часа)
+
+**Commit:**
+```
+git add src/backend/AgileBoard/Adapters/Persistence/ src/backend/AgileBoard/Migrations/
+git commit -m "Add SprintRepository and database migration"
+```
 
 ---
 
@@ -726,6 +739,12 @@ dotnet test --filter "GetSprintByIdQuery_NonExistingId_ThrowsNotFoundException"
 
 **Size:** M (~2-3 часа)
 
+**Commit:**
+```
+git add src/backend/AgileBoard/Application/UseCases/Sprints/ src/backend/AgileBoard.Tests/Unit/UseCases/Sprints/
+git commit -m "Add CQRS commands and queries for Sprints"
+```
+
 ---
 
 ### T4: SprintController с CRUD endpoints
@@ -923,6 +942,12 @@ dotnet test --filter "DELETE_api_sprints_id_ExistingId_Returns204NoContent"
 
 **Size:** M (~2-3 часа)
 
+**Commit:**
+```
+git add src/backend/AgileBoard/Adapters/WebApi/Controllers/SprintController.cs src/backend/AgileBoard.Tests/Integration/SprintControllerTests.cs
+git commit -m "Add SprintController with CRUD endpoints"
+```
+
 ---
 
 ### T5: Frontend — SprintBoard страница с ComboBox и формой
@@ -978,6 +1003,12 @@ npm run dev
 
 **Size:** M (~2-3 часа)
 
+**Commit:**
+```
+git add src/frontend/src/sprints/
+git commit -m "Add SprintBoard page with ComboBox and form"
+```
+
 ---
 
 ### T6: Frontend — Три колонки доски
@@ -1019,6 +1050,12 @@ npm run dev
 - **Blocked by:** T5
 
 **Size:** S (~1-2 часа)
+
+**Commit:**
+```
+git add src/frontend/src/sprints/components/SprintColumns.tsx src/frontend/src/sprints/components/SprintColumn.tsx src/frontend/src/sprints/sprints-board.css
+git commit -m "Add three-column SprintBoard layout"
+```
 
 ---
 
@@ -1073,6 +1110,12 @@ npm run dev --prefix src/frontend
 - **Blocked by:** T5, T6
 
 **Size:** S (~1-2 часа)
+
+**Commit:**
+```
+git add src/frontend/src/sprints/api/sprintsApi.ts src/frontend/src/main.tsx src/frontend/src/App.tsx
+git commit -m "Integrate frontend with backend API and configure CORS"
+```
 
 ---
 
