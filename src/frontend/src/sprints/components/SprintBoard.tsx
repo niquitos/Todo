@@ -1,7 +1,8 @@
-import React from 'react';
+import { useState } from 'react';
 import { Sprint } from '../types/sprint';
 import { SprintSelect } from './SprintSelect';
 import { SprintForm } from './SprintForm';
+import { SprintColumns } from './SprintColumns';
 
 interface SprintBoardProps {
   sprints: Sprint[];
@@ -26,7 +27,7 @@ export function SprintBoard({
   loading,
   error,
 }: SprintBoardProps) {
-  const [editingSprint, setEditingSprint] = React.useState<Sprint | null>(null);
+  const [editingSprint, setEditingSprint] = useState<Sprint | null>(null);
 
   const handleCreateSuccess = () => {
     // Refresh is handled by parent
@@ -97,10 +98,10 @@ export function SprintBoard({
             )}
           </div>
         )}
-      </div>
 
-      <div className="sprint-columns-placeholder">
-        <p>Колонки доски будут добавлены в следующем шаге</p>
+        <div className="sprint-columns-container">
+          <SprintColumns sprintId={activeSprint?.id} />
+        </div>
       </div>
     </div>
   );
