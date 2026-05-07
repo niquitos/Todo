@@ -1,0 +1,25 @@
+# .NET / Visual Studio
+bin/
+obj/
+*.user
+.vs/
+.idea/
+
+# Node.js
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Claude Code
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
