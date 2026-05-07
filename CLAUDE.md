@@ -20,7 +20,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | Layer | Responsibility |
 |-------|----------------|
-| Adapters/Infrastructure | Внешние сервисы (Email, Cache) |
+| Adapters/Infrastructure | Внешние сервисы (заготовка, пока пусто) |
 | Adapters/Persistence | Repositories, DbContext |
 | Adapters/WebApi | Controllers, DTOs |
 | Application | Use Cases (CQRS), Validators |
@@ -46,18 +46,18 @@ src/frontend/src/<feature>/
 └── pages/       # Страницы
 ```
 
-**Точка входа:** `main.tsx` рендерит страницу напрямую (без App.tsx роутера). Маршрутизация через `react-router-dom` подключается внутри feature-страниц.
+**Точка входа:** `main.tsx` рендерит `SprintBoardPage` напрямую (без роутера). `react-router-dom` присутствует в зависимостях для будущего использования.
 
 **Nginx конфигурация:**
-- Раздаёт статику из `/app/dist`
+- Раздаёт статику из `/usr/share/nginx/html`
 - Проксирует `/api/*` на `backend:8080`
 - SPA routing через `try_files`
 
 ### Key Patterns
 
-- **CQRS:** `IRequest`/`IRequest<TResult>` (MediatR) для команд и запросов
-- **Repository:** `ISprintRepository` с методами GetById, GetAll, Add, Update, Delete
-- **DDD Lite:** Aggregate Roots с инкапсулированной логикой, Value Objects
+- **CQRS:** `IRequest`/`IRequest<TResult>` (MediatR) для команд и запросов (Sprints: 2 Query + 3 Command; Tasks: 1 Query + 4 Command)
+- **Repository:** `ISprintRepository` и `ITaskItemRepository` с методами GetById, GetAll, Add, Update, Delete
+- **DDD Lite:** Aggregate Roots (`Sprint`, `TaskItem`), Value Objects (`SprintId`, `TaskItemId`), Enum (`ColumnType: New/InProgress/Done`)
 - **TDD:** Red → Green → Refactor (только backend)
 - **InternalsVisibleTo:** `AgileBoard.Tests` имеет доступ к internal-членам `AgileBoard`
 
@@ -97,7 +97,11 @@ npm --prefix src/frontend run build    # Production сборка (tsc + vite)
 npm --prefix src/frontend run preview  # Preview production сборки
 ```
 
+Актуальный `package.json` находится в `src/frontend/package.json`. Корневой `package.json` не используется для сборки и является артефактом.
+
 ## Endpoints
+
+### Спринты
 
 | Endpoint | Метод | Описание |
 |----------|-------|----------|
@@ -106,12 +110,29 @@ npm --prefix src/frontend run preview  # Preview production сборки
 | `/api/sprints` | POST | Создать спринт |
 | `/api/sprints/{id}` | PUT | Обновить спринт |
 | `/api/sprints/{id}` | DELETE | Удалить спринт |
+
+### Задачи
+
+| Endpoint | Метод | Описание |
+|----------|-------|----------|
+| `/api/sprints/{sprintId}/tasks` | GET | Список задач спринта |
+| `/api/sprints/{sprintId}/tasks` | POST | Создать задачу |
+| `/api/sprints/{sprintId}/tasks/{taskId}` | PUT | Обновить задачу |
+| `/api/sprints/{sprintId}/tasks/{taskId}` | DELETE | Удалить задачу |
+| `/api/sprints/{sprintId}/tasks/move` | PUT | Переместить задачу (колонка/позиция) |
+
+### Остальное
+
+| Endpoint | Метод | Описание |
+|----------|-------|----------|
 | `/swagger` | GET | Swagger UI (только Development) |
 
 ### Обработка ошибок
 
-- `SprintOverlapException` → 400 Bad Request (через `ExceptionHandlingMiddleware`)
+- `ExceptionHandlingMiddleware` (зарегистрирован через `AddExceptionHandler`) + `UseExceptionHandler("/error")`
+- `SprintOverlapException` → 400 Bad Request (ProblemDetails JSON)
 - `NotFoundException` → 404 Not Found
+- Необработанные исключения → 500 Internal Server Error
 
 ## Docker Configuration
 
@@ -120,14 +141,13 @@ npm --prefix src/frontend run preview  # Preview production сборки
 2. `backend` — .NET API, порт `5000:8080`
 3. `frontend` — React (nginx), порт `3000:80`
 
-**Override:** `docker-compose.override.yml` добавляет:
-- `VITE_API_URL=http://backend:8080` — URL API для frontend в Docker-сети
+**Override:** `docker-compose.override.yml` задаёт `ASPNETCORE_ENVIRONMENT=Development` и `VITE_API_URL=http://backend:8080`. Frontend использует относительные пути для API, поэтому `VITE_API_URL` зарезервирован для будущего использования.
 
 **Внутренняя сеть:** сервисы общаются по именам контейнеров (`backend`, `db`). Connection string в контейнере: `Host=db;Database=agileboard;Username=postgres;Password=postgres`.
 
 ## CORS
 
-Политика `"AllowFrontend"` в `Program.cs` разрешает запросы с `http://localhost:3000`. При разработке вне Docker-a frontend может делать запросы к backend на `http://localhost:5000`.
+Политика `"AllowFrontend"` в `Program.cs` разрешает запросы с `http://localhost:3000`. Vite dev-сервер настроен на порт 3000 (`vite.config.ts`), поэтому CORS покрывает как Docker, так и локальную разработку.
 
 ## Ports
 
@@ -180,9 +200,11 @@ src/
 - **Design** — архитектурные решения
 - **Tasks** — задачи с тестами и критериями приёмки
 
-Готовые спецификации (реализованные): `infrastructure.md`, `sprints-and-board.md`.
+Готовые спецификации (реализованные): `git-init-agileboard.md`, `infrastructure.md`, `sprints-and-board.md`, `task-items.md`.
 
 ## Database
+
+**Таблицы:** `Sprints`, `TaskItems` (с внешним ключом к Sprints, каскадное удаление). Составной индекс на `TaskItems(SprintId, ColumnType, Position)`.
 
 **Migrations:** EF Core миграции в `src/backend/AgileBoard/Adapters/Persistence/Migrations/`. Применяются автоматически при старте backend через `EnsureCreated()`.
 
