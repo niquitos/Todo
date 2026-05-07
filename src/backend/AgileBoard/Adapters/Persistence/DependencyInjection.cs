@@ -15,6 +15,7 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString));
 
         services.AddScoped<ISprintRepository, SprintRepository>();
+        services.AddScoped<ITaskItemRepository, TaskItemRepository>();
 
         return services;
     }
