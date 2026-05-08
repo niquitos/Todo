@@ -33,7 +33,6 @@ export function SprintBoardPage() {
     createSprint,
     updateSprint,
     deleteSprint,
-    refresh: refreshSprints,
   } = useSprints(sprintIdFromUrl);
 
   // Redirect to default sprint if no sprint specified
@@ -50,6 +49,11 @@ export function SprintBoardPage() {
     }
   }, [activeSprintId]);
 
+  const handleSprintChange = (newSprintId: string) => {
+    setActiveSprintId(newSprintId);
+    setSprintIdInUrl(newSprintId);
+  };
+
   const {
     tasks,
     loading: tasksLoading,
@@ -57,8 +61,7 @@ export function SprintBoardPage() {
     create: createTask,
     update: updateTask,
     remove: removeTask,
-    move: moveTask,
-  } = useTaskItems(activeSprintId || null, refreshSprints);
+  } = useTaskItems(activeSprintId || null, handleSprintChange);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -80,7 +83,11 @@ export function SprintBoardPage() {
   const handleDrop = async (e: React.DragEvent, columnType: ColumnType, targetPosition: number) => {
     const taskId = e.dataTransfer.getData('text/plain');
     if (!taskId) return;
-    await moveTask(taskId, columnType, targetPosition);
+    await updateTask(taskId, {
+      name: '',
+      columnType,
+      position: targetPosition,
+    });
   };
 
   const handleCreateTask = async (dto: CreateTaskItemDto | UpdateTaskItemDto) => {

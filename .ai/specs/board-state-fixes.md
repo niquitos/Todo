@@ -65,7 +65,7 @@
 ## Критерии приёмки
 
 **AC-1:** Перезагрузка страницы → активный спринт сохраняется и восстанавливается
-**AC-2:** Перенос задачи на другой спринт → задача исчезает с текущей доски и появляется на целевой
+**AC-2:** Обновление спринта у задачи → задача исчезает с текущей доски и появляется на целевой
 **AC-3:** Создание задачи для другого спринта → после создания пользователь видит текущий спринт без созданной задачи
 **AC-4:** Ширина сайта ≤ 1200px, содержимое центрировано
 
@@ -289,22 +289,22 @@ git commit -m "limit board width to 1200px with centering"
 
 ---
 
-### T3: Перезапрашивать спринт после мутаций (update, create)
+### T3: Изменение спринта после мутаций (update, create)
 
 **Files:** `src/frontend/src/sprints/hooks/useSprintBoard.ts`, `src/frontend/src/tasks/hooks/useTaskItems.ts`
 
 **Do:**
-- [После успешного `PUT /api/sprints/{sprintId}/tasks` — вызвать refetch спринта]
-- [После успешного `POST /api/sprints/{sprintId}/tasks` — вызвать refetch спринта]
+- [После успешного `PUT /api/sprints/{sprintId}/tasks/{taskId}` — получить задачи спринта `GET /api/sprints/{sprintId}/tasks` и перерисовать их]
+- [После успешного `POST /api/sprints/{sprintId}/tasks` — получить задачи спринта `GET /api/sprints/{sprintId}/tasks` и перерисовать их]
 
 **Acceptance Criteria:**
 
-**AC-2:** Перенос задачи на другой спринт → задача исчезает с текущей доски и появляется на целевой
+**AC-2:** Обновление спринта у задачи → задача исчезает с текущей доски и появляется на целевой
 **AC-3:** Создание задачи для другого спринта → после создания пользователь видит текущий спринт без созданной задачи
 
 **Test Cases:**
 
-#### Test-1: Перенос задачи обновляет доску
+#### Test-1: Изменение спринта задачи обновляет доску
 **Type:** Integration
 **Links:** AC-2
 
@@ -314,7 +314,7 @@ git commit -m "limit board width to 1200px with centering"
 
 **Action:**
 ```
-PUT /api/sprints/{sprintA_id}/tasks
+PUT /api/sprints/{sprintA_id}/tasks/{taskId}
   { targetSprintId: sprintB_id, targetColumn: New, position: 0 }
 ```
 
@@ -324,66 +324,32 @@ PUT /api/sprints/{sprintA_id}/tasks
 
 **Verify command:**
 ```
-http PUT /api/sprints/{sprintA_id}/tasks targetSprintId={sprintB_id}
-GET /api/sprints/{sprintA_id} → tasks не содержит task1_id
-GET /api/sprints/{sprintB_id} → tasks содержит task1_id
+http PUT /api/sprints/{sprintA_id}/tasks/{taskId} targetSprintId={sprintB_id}
+     GET /api/sprints/{sprintA_id}/tasks → tasks не содержит task1_id
+     GET /api/sprints/{sprintB_id}/tasks → tasks содержит task1_id
 ```
 
-#### Test-2: Создание задачи для текущего спринта
+#### Test-1: Создание задачи для чужого спринта
 **Type:** Integration
-**Links:** AC-3
+**Links:** AC-2
 
 **Preconditions:**
-- Открыта доска спринта A
+- Спринт A существует
+- Спринт B существует
 
 **Action:**
 ```
 POST /api/sprints/{sprintA_id}/tasks
-  { title: "New Task", column: New, position: 0 }
+  { targetSprintId: sprintB_id, targetColumn: New, position: 0 }
 ```
 
 **Expected:**
-- Задача появляется на доске A
+- Задача T1 не на доске A
+- Задача T1 на доске B
 
 **Verify command:**
 ```
-POST /api/sprints/{sprintA_id}/tasks { title: "Test", column: New, position: 0 }
-GET /api/sprints/{sprintA_id} → tasks содержит новую задачу
+http POST /api/sprints/{sprintA_id}/tasks targetSprintId={sprintB_id}
+     GET /api/sprints/{sprintA_id}/tasks → tasks не содержит task1_id
+     GET /api/sprints/{sprintB_id}/tasks → tasks содержит task1_id
 ```
-
-#### Test-3: Создание задачи для другого спринта
-**Type:** Integration
-**Links:** AC-3
-
-**Preconditions:**
-- Открыта доска спринта A
-
-**Action:**
-```
-POST /api/sprints/{sprintB_id}/tasks
-  { title: "New Task", column: New, position: 0 }
-```
-
-**Expected:**
-- Задача не появляется на доске A
-- При переходе на спринт B — задача видна
-
-**Verify command:**
-```
-POST /api/sprints/{sprintB_id}/tasks { title: "Test", column: New, position: 0 }
-GET /api/sprints/{sprintA_id} → tasks не содержит новую задачу
-GET /api/sprints/{sprintB_id} → tasks содержит новую задачу
-```
-
-**Dependencies:**
-- **Blocks:** —
-- **Blocked by:** T1
-
-**Size:** M (~2 часа)
-
-**Git:**
-```
-git add src/frontend/src/sprints/hooks/useSprintBoard.ts src/frontend/src/tasks/hooks/useTaskItems.ts
-git commit -m "refetch sprint after task create/update for sync"
-```
-

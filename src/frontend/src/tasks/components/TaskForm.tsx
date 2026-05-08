@@ -42,6 +42,7 @@ export function TaskForm({ task, columnType, sprints, defaultSprintId, onSubmit,
         name: name.trim(),
         description: description.trim() || undefined,
         columnType: status,
+        position: 0,
         sprintId: sprintId || undefined,
       });
       onSuccess();

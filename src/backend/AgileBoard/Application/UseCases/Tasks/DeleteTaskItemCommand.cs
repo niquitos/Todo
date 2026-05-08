@@ -5,7 +5,7 @@ using AgileBoard.Domain;
 
 namespace AgileBoard.Application.UseCases.Tasks;
 
-public record DeleteTaskItemCommand(TaskItemId TaskId, SprintId SprintId) : IRequest;
+public record DeleteTaskItemCommand(TaskItemId TaskId, SprintId? SprintId) : IRequest;
 
 public class DeleteTaskItemCommandHandler : IRequestHandler<DeleteTaskItemCommand>
 {
@@ -23,14 +23,17 @@ public class DeleteTaskItemCommandHandler : IRequestHandler<DeleteTaskItemComman
 
         await _repository.DeleteAsync(request.TaskId, cancellationToken);
 
-        var remainingTasks = (await _repository.GetBySprintIdAsync(request.SprintId, cancellationToken))
-            .Where(t => t.ColumnType == task.ColumnType && t.Position > task.Position)
-            .ToList();
-
-        foreach (var remaining in remainingTasks)
+        if (request.SprintId is not null)
         {
-            remaining.Move(remaining.ColumnType, remaining.Position - 1);
-            await _repository.UpdateAsync(remaining, cancellationToken);
+            var remainingTasks = (await _repository.GetBySprintIdAsync(new SprintId(request.SprintId.Value), cancellationToken))
+                .Where(t => t.ColumnType == task.ColumnType && t.Position > task.Position)
+                .ToList();
+
+            foreach (var remaining in remainingTasks)
+            {
+                remaining.Move(remaining.ColumnType, remaining.Position - 1);
+                await _repository.UpdateAsync(remaining, cancellationToken);
+            }
         }
     }
 }

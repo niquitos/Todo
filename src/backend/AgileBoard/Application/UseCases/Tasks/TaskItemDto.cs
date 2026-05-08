@@ -29,13 +29,11 @@ public class CreateTaskItemDto
     public Guid? SprintId { get; init; }
 }
 
-public record UpdateTaskItemDto(
-    string Name,
-    string? Description
-);
-
-public record MoveTaskItemDto(
-    Guid TaskId,
-    string NewColumnType,
-    int NewPosition
-);
+public class UpdateTaskItemDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string ColumnType { get; set; } = string.Empty;
+    public int Position { get; set; }
+    public Guid? SprintId { get; set; }
+}
