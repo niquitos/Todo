@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { useSprints } from '../hooks/useSprints';
 import { useTaskItems } from '../../tasks/hooks/useTaskItems';
 import { SprintSelect } from '../components/SprintSelect';
@@ -9,9 +8,20 @@ import { TaskForm } from '../../tasks/components/TaskForm';
 import { ConfirmDialog } from '../../tasks/components/ConfirmDialog';
 import { TaskItem, ColumnType, CreateTaskItemDto, UpdateTaskItemDto } from '../../tasks/types/taskItem';
 
+function getSprintIdFromUrl(): string | null {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('sprint');
+}
+
+function setSprintIdInUrl(sprintId: string) {
+  const params = new URLSearchParams(window.location.search);
+  params.set('sprint', sprintId);
+  const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+  window.history.replaceState({}, '', newUrl);
+}
+
 export function SprintBoardPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const sprintIdFromUrl = searchParams.get('sprint');
+  const sprintIdFromUrl = getSprintIdFromUrl();
 
   const {
     sprints,
@@ -28,9 +38,16 @@ export function SprintBoardPage() {
   // Redirect to default sprint if no sprint specified
   useEffect(() => {
     if (!sprintsLoading && !sprintIdFromUrl && sprints.length > 0 && activeSprintId) {
-      setSearchParams({ sprint: activeSprintId });
+      setSprintIdInUrl(activeSprintId);
     }
-  }, [sprintsLoading, sprintIdFromUrl, sprints.length, activeSprintId, setSearchParams]);
+  }, [sprintsLoading, sprintIdFromUrl, sprints.length, activeSprintId]);
+
+  // Listen for URL changes (when user selects sprint from dropdown)
+  useEffect(() => {
+    if (activeSprintId && activeSprintId !== getSprintIdFromUrl()) {
+      setSprintIdInUrl(activeSprintId);
+    }
+  }, [activeSprintId]);
 
   const {
     tasks,
@@ -114,7 +131,10 @@ export function SprintBoardPage() {
           <SprintSelect
             sprints={sprints}
             activeSprintId={activeSprintId}
-            onSelect={setActiveSprintId}
+            onSelect={(id) => {
+              setActiveSprintId(id);
+              setSprintIdInUrl(id);
+            }}
           />
           <div className="header-actions">
             <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
