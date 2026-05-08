@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useSprints } from '../hooks/useSprints';
 import { useTaskItems } from '../../tasks/hooks/useTaskItems';
@@ -10,7 +10,7 @@ import { ConfirmDialog } from '../../tasks/components/ConfirmDialog';
 import { TaskItem, ColumnType, CreateTaskItemDto, UpdateTaskItemDto } from '../../tasks/types/taskItem';
 
 export function SprintBoardPage() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const sprintIdFromUrl = searchParams.get('sprint');
 
   const {
@@ -24,6 +24,13 @@ export function SprintBoardPage() {
     updateSprint,
     deleteSprint,
   } = useSprints(sprintIdFromUrl);
+
+  // Redirect to default sprint if no sprint specified
+  useEffect(() => {
+    if (!sprintsLoading && !sprintIdFromUrl && sprints.length > 0 && activeSprintId) {
+      setSearchParams({ sprint: activeSprintId });
+    }
+  }, [sprintsLoading, sprintIdFromUrl, sprints.length, activeSprintId, setSearchParams]);
 
   const {
     tasks,

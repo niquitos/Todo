@@ -27,7 +27,7 @@ export function useSprints(initialSprintId?: string | null) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [initialSprintId]);
 
 
   // Update URL when active sprint changes (after initial load)
