@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useSprints } from '../hooks/useSprints';
 import { useTaskItems } from '../../tasks/hooks/useTaskItems';
 import { SprintSelect } from '../components/SprintSelect';
@@ -9,6 +10,9 @@ import { ConfirmDialog } from '../../tasks/components/ConfirmDialog';
 import { TaskItem, ColumnType, CreateTaskItemDto, UpdateTaskItemDto } from '../../tasks/types/taskItem';
 
 export function SprintBoardPage() {
+  const [searchParams] = useSearchParams();
+  const sprintIdFromUrl = searchParams.get('sprint');
+
   const {
     sprints,
     activeSprint,
@@ -19,7 +23,7 @@ export function SprintBoardPage() {
     createSprint,
     updateSprint,
     deleteSprint,
-  } = useSprints();
+  } = useSprints(sprintIdFromUrl);
 
   const {
     tasks,
