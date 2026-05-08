@@ -53,7 +53,7 @@ public class SprintControllerTests
     }
 
     [Test]
-    public async Task GET_api_sprints_EmptyDatabase_ReturnsEmptyArray()
+    public async Task GET_api_sprints_EmptyDatabase_ReturnsOnlyDefaultSprint()
     {
         // Act
         var response = await _client.GetAsync("/api/sprints");
@@ -61,7 +61,9 @@ public class SprintControllerTests
         // Assert
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<List<SprintDto>>();
-        Assert.That(result, Is.Empty);
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result!.Count, Is.EqualTo(1));
+        Assert.That(result[0].IsDefault, Is.True);
     }
 
     [Test]
@@ -78,7 +80,7 @@ public class SprintControllerTests
         // Assert
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<List<SprintDto>>();
-        Assert.That(result!.Count, Is.EqualTo(2));
+        Assert.That(result!.Count, Is.EqualTo(3));
     }
 
     [Test]

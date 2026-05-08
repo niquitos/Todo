@@ -26,5 +26,8 @@ public class SprintConfiguration : IEntityTypeConfiguration<Sprint>
 
         builder.Property(s => s.Description)
             .HasMaxLength(1000);
+
+        builder.Property(s => s.IsDefault)
+            .IsRequired();
     }
 }

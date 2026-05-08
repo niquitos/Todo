@@ -7,7 +7,8 @@ public record SprintDto(
     string Name,
     DateTime StartDate,
     DateTime EndDate,
-    string? Description
+    string? Description,
+    bool IsDefault
 )
 {
     public static SprintDto FromSprint(Sprint sprint) => new(
@@ -15,7 +16,8 @@ public record SprintDto(
         sprint.Name,
         sprint.StartDate,
         sprint.EndDate,
-        sprint.Description
+        sprint.Description,
+        sprint.IsDefault
     );
 }
 

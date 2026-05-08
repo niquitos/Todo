@@ -21,7 +21,7 @@ public class CreateSprintCommandHandler : IRequestHandler<CreateSprintCommand, G
 
         foreach (var existingSprint in allSprints)
         {
-            if (existingSprint.OverlapsWith(request.Dto.StartDate, request.Dto.EndDate))
+            if (!existingSprint.IsDefault && existingSprint.OverlapsWith(request.Dto.StartDate, request.Dto.EndDate))
             {
                 throw new SprintOverlapException("Диапазон дат пересекается с существующим спринтом.");
             }

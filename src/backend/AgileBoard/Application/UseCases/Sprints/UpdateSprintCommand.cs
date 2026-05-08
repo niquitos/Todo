@@ -23,6 +23,7 @@ public class UpdateSprintCommandHandler : IRequestHandler<UpdateSprintCommand>
         foreach (var existingSprint in await _repository.GetAllAsync(cancellationToken))
         {
             if (existingSprint.Id.Value != request.Id.Value &&
+                !existingSprint.IsDefault &&
                 existingSprint.OverlapsWith(request.Dto.StartDate, request.Dto.EndDate))
             {
                 throw new SprintOverlapException("Диапазон дат пересекается с существующим спринтом.");

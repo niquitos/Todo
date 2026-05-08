@@ -44,4 +44,10 @@ public class SprintRepository : ISprintRepository
             await _context.SaveChangesAsync(cancellationToken);
         }
     }
+
+    public async Task<Sprint?> GetDefaultAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Sprints
+            .FirstOrDefaultAsync(s => s.IsDefault, cancellationToken);
+    }
 }
