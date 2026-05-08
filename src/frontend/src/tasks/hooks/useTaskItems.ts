@@ -19,7 +19,7 @@ export function useTaskItems(sprintId: string | null) {
       setTasks(data);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load task items');
+      setError(err instanceof Error ? err.message : 'Не удалось загрузить задачи');
     } finally {
       setLoading(false);
     }
@@ -56,7 +56,7 @@ export function useTaskItems(sprintId: string | null) {
       setTasks(prev => prev.map(t => t.id === tempId ? created : t));
     } catch (err) {
       setTasks(previousTasksRef.current);
-      setError(err instanceof Error ? err.message : 'Failed to create task');
+      setError(err instanceof Error ? err.message : 'Не удалось создать задачу');
     }
   };
 
@@ -72,7 +72,7 @@ export function useTaskItems(sprintId: string | null) {
       await updateTaskItem(sprintId, taskId, dto);
     } catch (err) {
       setTasks(previousTasksRef.current);
-      setError(err instanceof Error ? err.message : 'Failed to update task');
+      setError(err instanceof Error ? err.message : 'Не удалось обновить задачу');
     }
   };
 
@@ -97,7 +97,7 @@ export function useTaskItems(sprintId: string | null) {
       await deleteTaskItem(sprintId, taskId);
     } catch (err) {
       setTasks(previousTasksRef.current);
-      setError(err instanceof Error ? err.message : 'Failed to delete task');
+      setError(err instanceof Error ? err.message : 'Не удалось удалить задачу');
     }
   };
 
@@ -163,7 +163,7 @@ export function useTaskItems(sprintId: string | null) {
       await moveTaskItem(sprintId, moveDto);
     } catch (err) {
       setTasks(previousTasksRef.current);
-      setError(err instanceof Error ? err.message : 'Failed to move task');
+      setError(err instanceof Error ? err.message : 'Не удалось переместить задачу');
     }
   };
 

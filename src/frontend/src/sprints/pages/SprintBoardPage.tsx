@@ -98,7 +98,7 @@ export function SprintBoardPage() {
   return (
     <div className="sprint-board-page">
       <header className="sprint-board-header">
-        <h1>Sprint Board</h1>
+        <h1>Доска спринта</h1>
         <div className="header-controls">
           <SprintSelect
             sprints={sprints}

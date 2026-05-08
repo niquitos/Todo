@@ -7,7 +7,7 @@ function apiUrl(sprintId: string): string {
 export async function getTaskItems(sprintId: string): Promise<TaskItem[]> {
   const response = await fetch(apiUrl(sprintId));
   if (!response.ok) {
-    throw new Error('Failed to fetch task items');
+    throw new Error('Не удалось загрузить задачи');
   }
   return response.json();
 }
@@ -20,7 +20,7 @@ export async function createTaskItem(sprintId: string, dto: CreateTaskItemDto): 
   });
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(error || 'Failed to create task item');
+    throw new Error(error || 'Не удалось создать задачу');
   }
   return response.json();
 }
@@ -33,7 +33,7 @@ export async function updateTaskItem(sprintId: string, taskId: string, dto: Upda
   });
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(error || 'Failed to update task item');
+    throw new Error(error || 'Не удалось обновить задачу');
   }
 }
 
@@ -42,7 +42,7 @@ export async function deleteTaskItem(sprintId: string, taskId: string): Promise<
     method: 'DELETE',
   });
   if (!response.ok) {
-    throw new Error('Failed to delete task item');
+    throw new Error('Не удалось удалить задачу');
   }
 }
 
@@ -54,6 +54,6 @@ export async function moveTaskItem(sprintId: string, dto: MoveTaskItemDto): Prom
   });
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(error || 'Failed to move task item');
+    throw new Error(error || 'Не удалось переместить задачу');
   }
 }

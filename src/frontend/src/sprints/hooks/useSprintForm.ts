@@ -40,7 +40,7 @@ export function useSprintForm({ sprint, onSubmit, onSuccess }: UseSprintFormProp
       setDescription('');
       onSuccess();
     } else {
-      setError(result.error || 'Operation failed');
+      setError(result.error || 'Операция не выполнена');
     }
 
     setSubmitting(false);
