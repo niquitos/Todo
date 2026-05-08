@@ -125,8 +125,9 @@ export function SprintBoardPage() {
   }
 
   return (
-    <div className="sprint-board-page">
-      <header className="sprint-board-header">
+    <div className="sprint-board-wrapper">
+      <div className="sprint-board-page">
+        <header className="sprint-board-header">
         <h1>Доска спринта</h1>
         <div className="header-controls">
           <SprintSelect
@@ -250,6 +251,7 @@ export function SprintBoardPage() {
           onCancel={() => setConfirmDeleteTask(null)}
         />
       )}
+      </div>
     </div>
   );
 }

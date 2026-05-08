@@ -4,7 +4,7 @@
 Несколько багов в UX доски: состояние не сохраняется между перезагрузками, перенос задач не обновляет видимость, создание задачи показывает её не на том спринте, доска слишком широкая.
 
 ## What
-Исправить 4 проблемы: persistence активного спринта, синхронизация задач после update, фильтрация при создании, ограничение ширины доски.
+Исправить 4 проблемы: persistence активного спринта, синхронизация задач после update, фильтрация при создании, ограничение ширины всего сайта (не только доски).
 
 ## Context
 
@@ -38,9 +38,9 @@
 - При создании задачи через модалку, если выбран спринт отличный от текущего, задача появляется на целевой доске и не показывается на текущей.
 - Если выбран текущий спринт — задача появляется на доске
 
-**FR-4: Ограничение ширины доски**
-- Максимальная ширина доски: 1400px
-- Центрирование на экране при ширине > 1400px
+**FR-4: Ограничение ширины сайта**
+- Максимальная ширина сайта: 1200px
+- Центрирование на экране при ширине > 1200px
 
 ### Нефункциональные
 
@@ -67,7 +67,7 @@
 **AC-1:** Перезагрузка страницы → активный спринт сохраняется и восстанавливается
 **AC-2:** Перенос задачи на другой спринт → задача исчезает с текущей доски и появляется на целевой
 **AC-3:** Создание задачи для другого спринта → после создания пользователь видит текущий спринт без созданной задачи
-**AC-4:** Ширина доски ≤ 1400px, содержимое центрировано
+**AC-4:** Ширина сайта ≤ 1200px, содержимое центрировано
 
 ## Проектирование
 
@@ -76,7 +76,7 @@
 **Выбранные технологии:**
 - **URL Query Parameter** (`?sprint=<id>`) — хранение активного спринта; нативно поддерживается браузером, survives перезагрузку, shareable между вкладками
 - **React `useSearchParams`** — чтение/запись query параметров без побочных эффектов
-- **CSS `max-width + margin: auto`** — ограничение ширины доски (1400px)
+- **CSS `max-width + margin: auto`** — ограничение ширины сайта (1200px)
 
 **Альтернативы (отклонены):**
 - `localStorage` — не shareable между вкладками, требует cleanup, усложняет deep-link
@@ -110,15 +110,15 @@ const sprintId = searchParams.get('sprint');
 // sprintId === null → загрузить первый спринт
 ```
 
-**`SprintBoard.tsx`:**
+**`SprintBoardPage.tsx`:**
 ```tsx
-// Обернуть в div с max-width: 1400px; margin: auto;
+// Обернуть весь контент в div с max-width: 1200px; margin: auto;
 ```
 
 ### Этапы реализации
 
 **Stage 1:** Добавить `useSearchParams` в `SprintBoardPage`, реализовать восстановление и смену sprintId через URL
-**Stage 2:** Добавить `max-width: 1400px` к `SprintBoard`, центрирование
+**Stage 2:** Добавить `max-width: 1200px` к `SprintBoardPage`, центрирование
 **Stage 3:** Интеграционное тестирование: перезагрузка, создание задачи, перенос
 
 ## Задачи
@@ -219,26 +219,26 @@ git commit -m "persist active sprint via URL query parameter"
 
 ---
 
-### T2: Ограничить ширину доски до 1400px
+### T2: Ограничить ширину сайта до 1200px
 
-**Files:** `src/frontend/src/sprints/components/SprintBoard.tsx`
+**Files:** `src/frontend/src/sprints/pages/SprintBoardPage.tsx`
 
 **Do:**
-- [Обернуть содержимое в `div` с `max-width: 1400px`]
+- [Обернуть весь контент в `div` с `max-width: 1200px`]
 - [Добавить `margin: auto` для центрирования]
 
 **Acceptance Criteria:**
 
-**AC-4:** Ширина доски ≤ 1400px, содержимое центрировано
+**AC-4:** Ширина сайта ≤ 1200px, содержимое центрировано
 
 **Test Cases:**
 
-#### Test-1: Доска центрирована на широком экране
+#### Test-1: Сайт центрирован на широком экране
 **Type:** Validation
 **Links:** AC-4
 
 **Preconditions:**
-- Браузер шириной > 1400px
+- Браузер шириной > 1200px
 
 **Action:**
 ```
@@ -246,21 +246,21 @@ git commit -m "persist active sprint via URL query parameter"
 ```
 
 **Expected:**
-- Доска шириной ≤ 1400px
+- Сайт шириной ≤ 1200px
 - По бокам равные отступы (центрирование)
 
 **Verify command:**
 ```
-CSS: max-width: 1400px; margin: auto;
+CSS: max-width: 1200px; margin: auto;
 DevTools: измерить ширину контейнера
 ```
 
-#### Test-2: Доска не ограничена на узком экране
+#### Test-2: Сайт не ограничена на узком экране
 **Type:** Validation
 **Links:** AC-4
 
 **Preconditions:**
-- Браузер шириной < 1400px
+- Браузер шириной < 1200px
 
 **Action:**
 ```
@@ -268,7 +268,7 @@ DevTools: измерить ширину контейнера
 ```
 
 **Expected:**
-- Доска занимает всю ширину экрана (100%)
+- Сайт занимает всю ширину экрана (100%)
 
 **Verify command:**
 ```
@@ -283,8 +283,8 @@ DevTools: проверить что max-width не применяется
 
 **Git:**
 ```
-git add src/frontend/src/sprints/components/SprintBoard.tsx
-git commit -m "limit board width to 1400px with centering"
+git add src/frontend/src/sprints/pages/SprintBoardPage.tsx
+git commit -m "limit board width to 1200px with centering"
 ```
 
 ---
@@ -387,55 +387,3 @@ git add src/frontend/src/sprints/hooks/useSprintBoard.ts src/frontend/src/tasks/
 git commit -m "refetch sprint after task create/update for sync"
 ```
 
----
-
-### T4: При создании задачи для другого спринта — переключать на него
-
-**Files:** `src/frontend/src/sprints/pages/SprintBoardPage.tsx`, `src/frontend/src/tasks/hooks/useTaskItems.ts`
-
-**Do:**
-- [После успешного создания задачи: если `task.sprintId !== currentSprintId` → `setSearchParams({ sprint: task.sprintId })`]
-
-**Acceptance Criteria:**
-
-**AC-3:** Создание задачи для другого спринта → после создания пользователь видит тот спринт с новой задачей
-
-**Test Cases:**
-
-#### Test-1: Создание задачи для другого спринта переключает доску
-**Type:** E2E
-**Links:** AC-3
-
-**Preconditions:**
-- Открыта доска спринта A
-- Известен id спринта B
-
-**Action:**
-```
-Открыть модалку создания задачи
-Выбрать спринт B
-Создать задачу
-```
-
-**Expected:**
-- URL обновляется на `?sprint=<sprintB_id>`
-- Отображается доска спринта B с новой задачей
-
-**Verify command:**
-```
-Создать задачу для sprint B
-Проверить URL содержит sprint B id
-Проверить задача видна на доске
-```
-
-**Dependencies:**
-- **Blocks:** —
-- **Blocked by:** T1, T3
-
-**Size:** S (~1 час)
-
-**Git:**
-```
-git add src/frontend/src/sprints/pages/SprintBoardPage.tsx src/frontend/src/tasks/hooks/useTaskItems.ts
-git commit -m "switch board when task created on different sprint"
-```
