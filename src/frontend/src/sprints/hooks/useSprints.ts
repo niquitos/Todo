@@ -18,7 +18,7 @@ export function useSprints() {
       }
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load sprints');
+      setError(err instanceof Error ? err.message : 'Не удалось загрузить спринты');
     } finally {
       setLoading(false);
     }
@@ -37,7 +37,7 @@ export function useSprints() {
     } catch (err) {
       return {
         success: false,
-        error: err instanceof Error ? err.message : 'Failed to create sprint'
+        error: err instanceof Error ? err.message : 'Не удалось создать спринт'
       };
     }
   };
@@ -50,7 +50,7 @@ export function useSprints() {
     } catch (err) {
       return {
         success: false,
-        error: err instanceof Error ? err.message : 'Failed to update sprint'
+        error: err instanceof Error ? err.message : 'Не удалось обновить спринт'
       };
     }
   };
@@ -66,7 +66,7 @@ export function useSprints() {
     } catch (err) {
       return {
         success: false,
-        error: err instanceof Error ? err.message : 'Failed to delete sprint'
+        error: err instanceof Error ? err.message : 'Не удалось удалить спринт'
       };
     }
   };

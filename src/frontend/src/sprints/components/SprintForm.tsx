@@ -34,7 +34,7 @@ export function SprintForm({ sprint, onSubmit, onSuccess, onCancel }: SprintForm
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          placeholder="Sprint 1"
+          placeholder="Спринт 1"
           disabled={submitting}
         />
       </div>

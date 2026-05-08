@@ -5,7 +5,7 @@ const API_URL = '/api/sprints';
 export async function getSprints(): Promise<Sprint[]> {
   const response = await fetch(API_URL);
   if (!response.ok) {
-    throw new Error('Failed to fetch sprints');
+    throw new Error('Не удалось загрузить спринты');
   }
   return response.json();
 }
@@ -13,7 +13,7 @@ export async function getSprints(): Promise<Sprint[]> {
 export async function getSprintById(id: string): Promise<Sprint> {
   const response = await fetch(`${API_URL}/${id}`);
   if (!response.ok) {
-    throw new Error('Failed to fetch sprint');
+    throw new Error('Не удалось загрузить спринт');
   }
   return response.json();
 }
@@ -26,7 +26,7 @@ export async function createSprint(dto: CreateSprintDto): Promise<Sprint> {
   });
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(error || 'Failed to create sprint');
+    throw new Error(error || 'Не удалось создать спринт');
   }
   return response.json();
 }
@@ -39,7 +39,7 @@ export async function updateSprint(id: string, dto: UpdateSprintDto): Promise<vo
   });
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(error || 'Failed to update sprint');
+    throw new Error(error || 'Не удалось обновить спринт');
   }
 }
 
@@ -48,6 +48,6 @@ export async function deleteSprint(id: string): Promise<void> {
     method: 'DELETE',
   });
   if (!response.ok) {
-    throw new Error('Failed to delete sprint');
+    throw new Error('Не удалось удалить спринт');
   }
 }
