@@ -68,17 +68,19 @@ export function useTaskItems(sprintId: string | null, onSprintChange?: (sprintId
     if (!sprintId) return;
     previousTasksRef.current = tasks;
 
+    const task = tasks.find(t => t.id === taskId);
+
     setTasks(prev => prev.map(t =>
-      t.id === taskId ? { ...t, name: dto.name, description: dto.description } : t
+      t.id === taskId ? { ...t, ...dto } : t
     ));
 
     try {
       await updateTaskItem(taskId, {
-        name: dto.name,
-        description: dto.description,
+        name: dto.name ?? task?.name ?? '',
+        description: dto.description ?? task?.description,
         columnType: dto.columnType,
         position: dto.position,
-        sprintId: dto.sprintId || undefined,
+        sprintId: dto.sprintId ?? task?.sprintId,
       });
       loadTasks();
       if (dto.sprintId && dto.sprintId !== sprintId) {

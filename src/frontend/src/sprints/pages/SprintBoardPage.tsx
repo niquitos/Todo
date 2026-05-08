@@ -83,10 +83,14 @@ export function SprintBoardPage() {
   const handleDrop = async (e: React.DragEvent, columnType: ColumnType, targetPosition: number) => {
     const taskId = e.dataTransfer.getData('text/plain');
     if (!taskId) return;
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
     await updateTask(taskId, {
-      name: '',
+      name: task.name,
+      description: task.description,
       columnType,
       position: targetPosition,
+      sprintId: task.sprintId,
     });
   };
 
