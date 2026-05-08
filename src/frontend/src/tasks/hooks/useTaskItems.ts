@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { TaskItem, CreateTaskItemDto, UpdateTaskItemDto, MoveTaskItemDto } from '../types/taskItem';
 import { getTaskItems, createTaskItem, updateTaskItem, deleteTaskItem, moveTaskItem } from '../api/taskItemsApi';
 
-export function useTaskItems(sprintId: string | null) {
+export function useTaskItems(sprintId: string | null, onRefetchSprint?: () => void) {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +54,7 @@ export function useTaskItems(sprintId: string | null) {
     try {
       const created = await createTaskItem(sprintId, dto);
       setTasks(prev => prev.map(t => t.id === tempId ? created : t));
+      onRefetchSprint?.();
     } catch (err) {
       setTasks(previousTasksRef.current);
       setError(err instanceof Error ? err.message : 'Не удалось создать задачу');
@@ -70,6 +71,7 @@ export function useTaskItems(sprintId: string | null) {
 
     try {
       await updateTaskItem(sprintId, taskId, dto);
+      onRefetchSprint?.();
     } catch (err) {
       setTasks(previousTasksRef.current);
       setError(err instanceof Error ? err.message : 'Не удалось обновить задачу');
@@ -161,6 +163,7 @@ export function useTaskItems(sprintId: string | null) {
         newPosition,
       };
       await moveTaskItem(sprintId, moveDto);
+      onRefetchSprint?.();
     } catch (err) {
       setTasks(previousTasksRef.current);
       setError(err instanceof Error ? err.message : 'Не удалось переместить задачу');

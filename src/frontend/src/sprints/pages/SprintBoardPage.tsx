@@ -33,6 +33,7 @@ export function SprintBoardPage() {
     createSprint,
     updateSprint,
     deleteSprint,
+    refresh: refreshSprints,
   } = useSprints(sprintIdFromUrl);
 
   // Redirect to default sprint if no sprint specified
@@ -57,7 +58,7 @@ export function SprintBoardPage() {
     update: updateTask,
     remove: removeTask,
     move: moveTask,
-  } = useTaskItems(activeSprintId || null);
+  } = useTaskItems(activeSprintId || null, refreshSprints);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
