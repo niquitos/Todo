@@ -52,8 +52,9 @@ export function SprintBoard({
   }
 
   return (
-    <div className="sprint-board-container">
-      <div className="sprint-board-header">
+    <div className="sprint-board-wrapper">
+      <div className="sprint-board-container">
+        <div className="sprint-board-header">
         <SprintSelect
           sprints={sprints}
           activeSprintId={activeSprintId}
@@ -110,6 +111,7 @@ export function SprintBoard({
             onDrop={() => {}}
           />
         </div>
+      </div>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSprints } from '../hooks/useSprints';
 import { useTaskItems } from '../../tasks/hooks/useTaskItems';
 import { SprintSelect } from '../components/SprintSelect';
@@ -8,7 +8,21 @@ import { TaskForm } from '../../tasks/components/TaskForm';
 import { ConfirmDialog } from '../../tasks/components/ConfirmDialog';
 import { TaskItem, ColumnType, CreateTaskItemDto, UpdateTaskItemDto } from '../../tasks/types/taskItem';
 
+function getSprintIdFromUrl(): string | null {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('sprint');
+}
+
+function setSprintIdInUrl(sprintId: string) {
+  const params = new URLSearchParams(window.location.search);
+  params.set('sprint', sprintId);
+  const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+  window.history.replaceState({}, '', newUrl);
+}
+
 export function SprintBoardPage() {
+  const sprintIdFromUrl = getSprintIdFromUrl();
+
   const {
     sprints,
     activeSprint,
@@ -19,7 +33,26 @@ export function SprintBoardPage() {
     createSprint,
     updateSprint,
     deleteSprint,
-  } = useSprints();
+  } = useSprints(sprintIdFromUrl);
+
+  // Redirect to default sprint if no sprint specified
+  useEffect(() => {
+    if (!sprintsLoading && !sprintIdFromUrl && sprints.length > 0 && activeSprintId) {
+      setSprintIdInUrl(activeSprintId);
+    }
+  }, [sprintsLoading, sprintIdFromUrl, sprints.length, activeSprintId]);
+
+  // Listen for URL changes (when user selects sprint from dropdown)
+  useEffect(() => {
+    if (activeSprintId && activeSprintId !== getSprintIdFromUrl()) {
+      setSprintIdInUrl(activeSprintId);
+    }
+  }, [activeSprintId]);
+
+  const handleSprintChange = (newSprintId: string) => {
+    setActiveSprintId(newSprintId);
+    setSprintIdInUrl(newSprintId);
+  };
 
   const {
     tasks,
@@ -28,8 +61,7 @@ export function SprintBoardPage() {
     create: createTask,
     update: updateTask,
     remove: removeTask,
-    move: moveTask,
-  } = useTaskItems(activeSprintId || null);
+  } = useTaskItems(activeSprintId || null, handleSprintChange);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -51,7 +83,15 @@ export function SprintBoardPage() {
   const handleDrop = async (e: React.DragEvent, columnType: ColumnType, targetPosition: number) => {
     const taskId = e.dataTransfer.getData('text/plain');
     if (!taskId) return;
-    await moveTask(taskId, columnType, targetPosition);
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    await updateTask(taskId, {
+      name: task.name,
+      description: task.description,
+      columnType,
+      position: targetPosition,
+      sprintId: task.sprintId,
+    });
   };
 
   const handleCreateTask = async (dto: CreateTaskItemDto | UpdateTaskItemDto) => {
@@ -96,14 +136,18 @@ export function SprintBoardPage() {
   }
 
   return (
-    <div className="sprint-board-page">
-      <header className="sprint-board-header">
+    <div className="sprint-board-wrapper">
+      <div className="sprint-board-page">
+        <header className="sprint-board-header">
         <h1>Доска спринта</h1>
         <div className="header-controls">
           <SprintSelect
             sprints={sprints}
             activeSprintId={activeSprintId}
-            onSelect={setActiveSprintId}
+            onSelect={(id) => {
+              setActiveSprintId(id);
+              setSprintIdInUrl(id);
+            }}
           />
           <div className="header-actions">
             <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
@@ -218,6 +262,7 @@ export function SprintBoardPage() {
           onCancel={() => setConfirmDeleteTask(null)}
         />
       )}
+      </div>
     </div>
   );
 }

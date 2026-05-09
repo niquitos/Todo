@@ -29,8 +29,8 @@ public class UpdateTaskItemCommandTests
         _repositoryMock.Setup(r => r.GetByIdAsync(taskId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(task);
 
-        var dto = new UpdateTaskItemDto("New Name", "New Description");
-        var command = new UpdateTaskItemCommand(taskId, sprintId, dto);
+        var dto = new UpdateTaskItemDto { Name = "New Name", Description = "New Description", ColumnType = "New", Position = 0 };
+        var command = new UpdateTaskItemCommand(taskId, dto);
 
         await _handler.Handle(command, CancellationToken.None);
 
@@ -40,19 +40,21 @@ public class UpdateTaskItemCommandTests
     }
 
     [Test]
-    public void UpdateTaskItemCommand_NotFound_ThrowsNotFoundException()
+    public async Task UpdateTaskItemCommand_ChangeSprint_UpdatesSprintId()
     {
-        var taskId = TaskItemId.New();
         var sprintId = SprintId.New();
+        var newSprintId = SprintId.New();
+        var task = TaskItem.Create("Task 1", "Desc", sprintId, ColumnType.New, 0);
+        var taskId = task.Id;
 
         _repositoryMock.Setup(r => r.GetByIdAsync(taskId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((TaskItem?)null);
+            .ReturnsAsync(task);
 
-        var dto = new UpdateTaskItemDto("New Name", null);
-        var command = new UpdateTaskItemCommand(taskId, sprintId, dto);
+        var dto = new UpdateTaskItemDto { Name = "Updated Task", Description = "Desc", ColumnType = "New", Position = 0, SprintId = newSprintId.Value };
+        var command = new UpdateTaskItemCommand(taskId, dto);
 
-        Func<Task> act = async () => await _handler.Handle(command, CancellationToken.None);
+        await _handler.Handle(command, CancellationToken.None);
 
-        Assert.That(act, Throws.Exception.TypeOf<NotFoundException>());
+        Assert.That(task.SprintId.Value, Is.EqualTo(newSprintId.Value));
     }
 }

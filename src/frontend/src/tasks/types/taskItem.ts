@@ -19,11 +19,7 @@ export interface CreateTaskItemDto {
 export interface UpdateTaskItemDto {
   name: string;
   description?: string;
+  columnType: ColumnType;
+  position: number;
   sprintId?: string;
-}
-
-export interface MoveTaskItemDto {
-  taskId: string;
-  newColumnType: ColumnType;
-  newPosition: number;
 }

@@ -2,31 +2,49 @@ import { useState, useEffect, useCallback } from 'react';
 import { Sprint, CreateSprintDto, UpdateSprintDto } from '../types/sprint';
 import { getSprints, createSprint, updateSprint, deleteSprint } from '../api/sprintsApi';
 
-export function useSprints() {
+export function useSprints(initialSprintId?: string | null) {
   const [sprints, setSprints] = useState<Sprint[]>([]);
   const [activeSprintId, setActiveSprintId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   const loadSprints = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getSprints();
       setSprints(data);
-      if (data.length > 0 && !activeSprintId) {
-        setActiveSprintId(data[0].id);
+      // Установить activeSprintId: из URL или первый из списка
+      if (data.length > 0) {
+        const targetId = initialSprintId ?? data[0].id;
+        setActiveSprintId(targetId);
       }
       setError(null);
+      setInitialized(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось загрузить спринты');
+      setInitialized(true);
     } finally {
       setLoading(false);
     }
-  }, [activeSprintId]);
+  }, [initialSprintId]);
 
+
+  // Update URL when active sprint changes (after initial load)
+  useEffect(() => {
+    if (initialized && activeSprintId) {
+      const params = new URLSearchParams(window.location.search);
+      params.set('sprint', activeSprintId);
+      const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [activeSprintId, initialized]);
+
+  // Load sprints on mount (only once)
   useEffect(() => {
     loadSprints();
-  }, [loadSprints]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCreateSprint = async (dto: CreateSprintDto) => {
     try {

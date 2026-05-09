@@ -1,3 +1,8 @@
+.sprint-board-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
 .sprint-board-page {
   display: flex;
   flex-direction: column;

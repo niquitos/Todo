@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { TaskItem, CreateTaskItemDto, UpdateTaskItemDto, MoveTaskItemDto } from '../types/taskItem';
-import { getTaskItems, createTaskItem, updateTaskItem, deleteTaskItem, moveTaskItem } from '../api/taskItemsApi';
+import { TaskItem, CreateTaskItemDto, UpdateTaskItemDto } from '../types/taskItem';
+import { getTaskItems, createTaskItem, updateTaskItem, deleteTaskItem } from '../api/taskItemsApi';
 
-export function useTaskItems(sprintId: string | null) {
+export function useTaskItems(sprintId: string | null, onSprintChange?: (sprintId: string) => void) {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,8 +52,12 @@ export function useTaskItems(sprintId: string | null) {
     });
 
     try {
-      const created = await createTaskItem(sprintId, dto);
+      const created = await createTaskItem({ ...dto, sprintId });
       setTasks(prev => prev.map(t => t.id === tempId ? created : t));
+      loadTasks();
+      if (dto.sprintId && dto.sprintId !== sprintId) {
+        onSprintChange?.(dto.sprintId);
+      }
     } catch (err) {
       setTasks(previousTasksRef.current);
       setError(err instanceof Error ? err.message : 'Не удалось создать задачу');
@@ -64,12 +68,24 @@ export function useTaskItems(sprintId: string | null) {
     if (!sprintId) return;
     previousTasksRef.current = tasks;
 
+    const task = tasks.find(t => t.id === taskId);
+
     setTasks(prev => prev.map(t =>
-      t.id === taskId ? { ...t, name: dto.name, description: dto.description } : t
+      t.id === taskId ? { ...t, ...dto } : t
     ));
 
     try {
-      await updateTaskItem(sprintId, taskId, dto);
+      await updateTaskItem(taskId, {
+        name: dto.name ?? task?.name ?? '',
+        description: dto.description ?? task?.description,
+        columnType: dto.columnType,
+        position: dto.position,
+        sprintId: dto.sprintId ?? task?.sprintId,
+      });
+      loadTasks();
+      if (dto.sprintId && dto.sprintId !== sprintId) {
+        onSprintChange?.(dto.sprintId);
+      }
     } catch (err) {
       setTasks(previousTasksRef.current);
       setError(err instanceof Error ? err.message : 'Не удалось обновить задачу');
@@ -94,76 +110,10 @@ export function useTaskItems(sprintId: string | null) {
     });
 
     try {
-      await deleteTaskItem(sprintId, taskId);
+      await deleteTaskItem(taskId);
     } catch (err) {
       setTasks(previousTasksRef.current);
       setError(err instanceof Error ? err.message : 'Не удалось удалить задачу');
-    }
-  };
-
-  const move = async (taskId: string, newColumnType: string, newPosition: number) => {
-    if (!sprintId) return;
-    previousTasksRef.current = tasks;
-
-    const taskToMove = tasks.find(t => t.id === taskId);
-    if (!taskToMove) return;
-
-    const oldColumnType = taskToMove.columnType;
-    const oldPosition = taskToMove.position;
-
-    setTasks(prev => {
-      let updated = prev.map(t => ({ ...t }));
-
-      if (oldColumnType === newColumnType) {
-        if (newPosition < oldPosition) {
-          updated = updated.map(t => {
-            if (t.columnType === oldColumnType && t.id !== taskId && t.position >= newPosition && t.position < oldPosition) {
-              return { ...t, position: t.position + 1 };
-            }
-            return t;
-          });
-        } else if (newPosition > oldPosition) {
-          updated = updated.map(t => {
-            if (t.columnType === oldColumnType && t.id !== taskId && t.position > oldPosition && t.position <= newPosition) {
-              return { ...t, position: t.position - 1 };
-            }
-            return t;
-          });
-        }
-        updated = updated.map(t => t.id === taskId ? { ...t, position: newPosition } : t);
-      } else {
-        // Remove from source: shift down
-        updated = updated.map(t => {
-          if (t.columnType === oldColumnType && t.position > oldPosition) {
-            return { ...t, position: t.position - 1 };
-          }
-          return t;
-        });
-        // Insert into target: shift up
-        updated = updated.map(t => {
-          if (t.columnType === newColumnType && t.position >= newPosition) {
-            return { ...t, position: t.position + 1 };
-          }
-          return t;
-        });
-        updated = updated.map(t =>
-          t.id === taskId ? { ...t, columnType: newColumnType as TaskItem['columnType'], position: newPosition } : t
-        );
-      }
-
-      return updated;
-    });
-
-    try {
-      const moveDto: MoveTaskItemDto = {
-        taskId,
-        newColumnType: newColumnType as MoveTaskItemDto['newColumnType'],
-        newPosition,
-      };
-      await moveTaskItem(sprintId, moveDto);
-    } catch (err) {
-      setTasks(previousTasksRef.current);
-      setError(err instanceof Error ? err.message : 'Не удалось переместить задачу');
     }
   };
 
@@ -174,7 +124,6 @@ export function useTaskItems(sprintId: string | null) {
     create,
     update,
     remove,
-    move,
     refresh: loadTasks,
   };
 }

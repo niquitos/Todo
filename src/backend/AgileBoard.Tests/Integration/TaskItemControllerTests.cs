@@ -58,7 +58,7 @@ public class TaskItemControllerTests
         var sprint = Sprint.Create("Sprint 1", DateTime.UtcNow, DateTime.UtcNow.AddDays(14));
         SeedData(sprint);
 
-        var response = await _client.GetAsync($"/api/sprints/{sprint.Id.Value}/tasks");
+        var response = await _client.GetAsync($"/api/tasks?sprintId={sprint.Id.Value}");
 
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<List<TaskItemDto>>();
@@ -71,9 +71,9 @@ public class TaskItemControllerTests
         var sprint = Sprint.Create("Sprint 1", DateTime.UtcNow, DateTime.UtcNow.AddDays(14));
         SeedData(sprint);
 
-        var dto = new CreateTaskItemDto { Name = "Task 1", Description = "Desc", ColumnType = "New" };
+        var dto = new CreateTaskItemDto { Name = "Task 1", Description = "Desc", ColumnType = "New", SprintId = sprint.Id.Value };
 
-        var response = await _client.PostAsJsonAsync($"/api/sprints/{sprint.Id.Value}/tasks", dto);
+        var response = await _client.PostAsJsonAsync($"/api/tasks", dto);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
         var result = await response.Content.ReadFromJsonAsync<TaskItemDto>();
@@ -84,18 +84,18 @@ public class TaskItemControllerTests
     }
 
     [Test]
-    public async Task PUT_tasks_move_ValidData_Returns204()
+    public async Task PUT_tasks_update_ValidData_Returns204()
     {
         var sprint = Sprint.Create("Sprint 1", DateTime.UtcNow, DateTime.UtcNow.AddDays(14));
         SeedData(sprint);
 
         var createDto = new CreateTaskItemDto { Name = "Task 1", Description = "Desc", ColumnType = "New" };
-        var createResponse = await _client.PostAsJsonAsync($"/api/sprints/{sprint.Id.Value}/tasks", createDto);
+        var createResponse = await _client.PostAsJsonAsync($"/api/tasks", createDto);
         var created = (await createResponse.Content.ReadFromJsonAsync<TaskItemDto>())!;
 
-        var moveDto = new MoveTaskItemDto(created.Id, "InProgress", 0);
+        var updateDto = new UpdateTaskItemDto { Name = "Updated Task", Description = "Updated Desc", ColumnType = "New", Position = 0 };
 
-        var response = await _client.PutAsJsonAsync($"/api/sprints/{sprint.Id.Value}/tasks/move", moveDto);
+        var response = await _client.PutAsJsonAsync($"/api/tasks/{created.Id}", updateDto);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
     }
@@ -107,10 +107,10 @@ public class TaskItemControllerTests
         SeedData(sprint);
 
         var createDto = new CreateTaskItemDto { Name = "Task 1", Description = "Desc", ColumnType = "New" };
-        var createResponse = await _client.PostAsJsonAsync($"/api/sprints/{sprint.Id.Value}/tasks", createDto);
+        var createResponse = await _client.PostAsJsonAsync($"/api/tasks", createDto);
         var created = (await createResponse.Content.ReadFromJsonAsync<TaskItemDto>())!;
 
-        var response = await _client.DeleteAsync($"/api/sprints/{sprint.Id.Value}/tasks/{created.Id}");
+        var response = await _client.DeleteAsync($"/api/tasks/{created.Id}");
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
     }

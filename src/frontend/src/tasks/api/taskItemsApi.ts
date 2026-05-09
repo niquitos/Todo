@@ -1,19 +1,17 @@
-import { TaskItem, CreateTaskItemDto, UpdateTaskItemDto, MoveTaskItemDto } from '../types/taskItem';
+import { TaskItem, CreateTaskItemDto, UpdateTaskItemDto } from '../types/taskItem';
 
-function apiUrl(sprintId: string): string {
-  return `/api/sprints/${sprintId}/tasks`;
-}
+const API_URL = '/api/tasks';
 
 export async function getTaskItems(sprintId: string): Promise<TaskItem[]> {
-  const response = await fetch(apiUrl(sprintId));
+  const response = await fetch(`${API_URL}?sprintId=${encodeURIComponent(sprintId)}`);
   if (!response.ok) {
     throw new Error('Не удалось загрузить задачи');
   }
   return response.json();
 }
 
-export async function createTaskItem(sprintId: string, dto: CreateTaskItemDto): Promise<TaskItem> {
-  const response = await fetch(apiUrl(sprintId), {
+export async function createTaskItem(dto: CreateTaskItemDto): Promise<TaskItem> {
+  const response = await fetch(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(dto),
@@ -25,8 +23,8 @@ export async function createTaskItem(sprintId: string, dto: CreateTaskItemDto): 
   return response.json();
 }
 
-export async function updateTaskItem(sprintId: string, taskId: string, dto: UpdateTaskItemDto): Promise<void> {
-  const response = await fetch(`${apiUrl(sprintId)}/${taskId}`, {
+export async function updateTaskItem(taskId: string, dto: UpdateTaskItemDto): Promise<void> {
+  const response = await fetch(`${API_URL}/${taskId}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(dto),
@@ -37,23 +35,11 @@ export async function updateTaskItem(sprintId: string, taskId: string, dto: Upda
   }
 }
 
-export async function deleteTaskItem(sprintId: string, taskId: string): Promise<void> {
-  const response = await fetch(`${apiUrl(sprintId)}/${taskId}`, {
+export async function deleteTaskItem(taskId: string): Promise<void> {
+  const response = await fetch(`${API_URL}/${taskId}`, {
     method: 'DELETE',
   });
   if (!response.ok) {
     throw new Error('Не удалось удалить задачу');
-  }
-}
-
-export async function moveTaskItem(sprintId: string, dto: MoveTaskItemDto): Promise<void> {
-  const response = await fetch(`${apiUrl(sprintId)}/move`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(dto),
-  });
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error || 'Не удалось переместить задачу');
   }
 }
